@@ -36,7 +36,7 @@ jobs:
         working-directory: packer/hcloud
 
       - name: Build Packer Image
-        run: packer build . -var "snapshot_suffix=${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+        run: packer build -var "snapshot_suffix=${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}" .
         working-directory: packer/hcloud
         env:
           PKR_VAR_build_source: ${GITHUB_REF_NAME}
