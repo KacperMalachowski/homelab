@@ -1,0 +1,14 @@
+environment/prod:
+  - changed-files:
+    - any-glob-to-any-file: terraform/environments/prod/*
+
+modules:
+  - changed-files:
+    - any-glob-to-any-file: terraform/modules/*
+
+packer:
+  - changed-files:
+    - any-glob-to-any-file: packer/*
+
+feature:
+ - head-branch: ['^feature', 'feature']
