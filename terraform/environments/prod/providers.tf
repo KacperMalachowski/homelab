@@ -41,7 +41,7 @@ data "kubernetes_secret" "argo_cluster_password" {
 }
 
 provider "argocd" {
-  port_forward = true
+  port_forward_with_namespace = "argocd"
   username = "admin"
   password = data.kubernetes_secret.argo_cluster_password.data["password"]
 

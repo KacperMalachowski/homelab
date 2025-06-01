@@ -1,6 +1,7 @@
 resource "argocd_application" "traefik" {
   metadata {
     name = "argo-traefik-chart"
+    namespace = "argocd"
   }
 
   wait = true

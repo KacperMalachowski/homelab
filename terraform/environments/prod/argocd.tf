@@ -46,6 +46,7 @@ resource "argocd_application" "cluster_config" {
 
   metadata {
     name      = "cluster-config"
+    namespace = "argocd"
   }
 
   wait = true
