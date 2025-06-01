@@ -27,7 +27,7 @@ variable "server_type" {
   default = "cx22"
 }
 
-variable "server_location" {
+variable "location" {
   type    = string
   default = "hel1"
 }
