@@ -1,0 +1,16 @@
+name: all-checks-passed
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, synchronize, opened, reopened]
+    branches:
+      - main
+
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+    steps:
+      - uses: wechuli/allcheckspassed@v1

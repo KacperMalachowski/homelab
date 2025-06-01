@@ -14,6 +14,9 @@ on:
       - terraform/**
       - .github/workflows/tflint.yaml
 
+permissions:
+  contents: read
+
 jobs:
   tflint:
     runs-on: ubuntu-latest
