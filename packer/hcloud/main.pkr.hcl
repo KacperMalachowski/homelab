@@ -33,7 +33,7 @@ variable "snapshot_suffix" {
 }
 
 locals {
-  image = "https://factory.talos.dev/image/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba/${var.talos_version}/hcloud-${var.arch}.raw.xz"
+  image = "https://factory.talos.dev/image/98b430833db447e791fa9fecb915073eb8a6d85ccf80ca3f67cd3bf56c527f49/${var.talos_version}/hcloud-${var.arch}.raw.xz"
 }
 
 source "hcloud" "talos" {
