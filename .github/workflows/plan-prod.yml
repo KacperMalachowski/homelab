@@ -22,7 +22,7 @@ jobs:
       id-token: "write" # needed for gcp_auth to create id token
     env:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
-      TF_VAR_argo_github_token: ${{ secrets.ARGO_MANIFESTS_TOKEN }}
+      TF_VAR_argo_github_token: ${{ secrets.ARGO_GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
