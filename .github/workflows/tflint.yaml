@@ -1,0 +1,53 @@
+name: tflint
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/**
+      - .github/workflows/tflint.yaml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - terraform/**
+      - .github/workflows/tflint.yaml
+
+jobs:
+  tflint:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest] 
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
+      - name: Cache plugin dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-plugins-${{ hashFiles('.tflint.hcl') }}
+
+      - name: Install TFLint
+        uses: terraform-linters/setup-tflint@v1
+      
+      - name: Show TFLint version
+        run: tflint --version
+
+      - name: Init TFLint
+        run: tflint --init
+        working-directory: terraform/environments/prod
+        env:
+          # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint --format=compact
+        working-directory: terraform/environments/prod
+
+      

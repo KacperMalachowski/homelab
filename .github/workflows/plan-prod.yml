@@ -1,0 +1,49 @@
+name: Plan Prod Terraform
+run-name: plan-prod-terraform
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name}}
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+      - "**.yaml"
+      - "**.yml"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read" # needed for gcp_auth
+      id-token: "write" # needed for gcp_auth to create id token
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      TF_VAR_argo_github_token: ${{ secrets.ARGO_MANIFESTS_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_PLANNER_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Tofu Init
+        run: tofu init -input=false
+        working-directory: terraform/environments/prod
+
+      - name: Tofu Validate
+        run: tofu validate -input=false -no-color
+        working-directory: terraform/environments/prod
+
+      - name: Tofu Plan
+        run: tofu plan -input=false -no-color -lock-timeout=300s
+        working-directory: terraform/environments/prod
