@@ -23,7 +23,7 @@ metadata:
    argocd.argoproj.io/secret-type: repo-creds
 stringData:
   type: git
-  url: https://github.com/KacerMalachowski/homelab
+  url: https://github.com/KacperMalachowski/homelab
   username: kacpermalachowski_argo_repo
   password: ${var.argo_github_token}
 YAML
