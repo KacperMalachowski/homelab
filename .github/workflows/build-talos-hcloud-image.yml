@@ -15,6 +15,9 @@ on:
       - packer/hcloud/**
       - .github/workflows/build-talos-hcloud-image.yml
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

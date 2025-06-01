@@ -9,7 +9,7 @@ module "talos" {
   source = "hcloud-talos/talos/hcloud"
   version = "2.13.1"
 
-  hcloud_token = env("HCLOUD_TOKEN")
+  hcloud_token = var.hcloud_token
 
   talos_version = "v1.10.0"
 

@@ -1,6 +1,6 @@
 resource "argocd_application" "traefik" {
   metadata {
-    name      =  "argo-traefik-chart"
+    name = "argo-traefik-chart"
   }
 
   wait = true
@@ -11,8 +11,8 @@ resource "argocd_application" "traefik" {
     }
 
     source {
-      repo_url = "https://github.com/traefik/traefik-helm-chart.git"
-      path     = "traefik"
+      repo_url        = "https://github.com/traefik/traefik-helm-chart.git"
+      path            = "traefik"
       target_revision = "v35.4.0"
 
       helm {
@@ -29,16 +29,17 @@ service:
 EOF
       }
     }
-  }
 
-  sync_policy {
-    automated {
-      prune = true
-      self_heal = true
+
+    sync_policy {
+      automated {
+        prune     = true
+        self_heal = true
+      }
+
+      sync_options = [
+        "CreateNamespace=true",
+      ]
     }
-
-    sync_options = [
-      "CreateNamespace=true",
-    ]
   }
 }
