@@ -1,5 +1,4 @@
-name: Plan Prod Terraform
-run-name: plan-prod-terraform
+name: plan-prod
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name}}
