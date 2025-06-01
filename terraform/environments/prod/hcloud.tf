@@ -46,6 +46,8 @@ module "talos" {
   control_plane_count = 1
   control_plane_server_type = "cx22"
 
+  worker_count = 1
+  worker_server_type = "cx22"
 
   disable_arm = true
 }
@@ -56,11 +58,6 @@ resource "hcloud_load_balancer" "this" {
 
   location = "hel1"
   
-}
-
-resource "hcloud_load_balancer_network" "this" {
-  load_balancer_id = hcloud_load_balancer.this.id
-  network_id = module.talos.hetzner_network_id
 }
 
 resource "hcloud_load_balancer_target" "this" {
