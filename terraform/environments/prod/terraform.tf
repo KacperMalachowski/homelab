@@ -26,5 +26,15 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 5"
     }
+
+    hcloud = {
+      source  = "hetznercloud/hcloud"
+      version = ">= 1.35.0"
+    }
+
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.9.0"
+    }
   }
 }

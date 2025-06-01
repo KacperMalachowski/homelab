@@ -1,4 +1,4 @@
-resource "kubectl_manifest" "name" {
+resource "kubectl_manifest" "argocd_namespace" {
   depends_on = [ module.talos ]
   yaml_body = <<YAML
 apiVersion: v1
