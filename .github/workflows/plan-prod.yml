@@ -1,7 +1,7 @@
 name: plan-prod
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name}}
+  group: terraform-prod
 
 on:
   pull_request_target:
@@ -41,7 +41,7 @@ jobs:
         working-directory: terraform/environments/prod
 
       - name: Tofu Validate
-        run: tofu validate -input=false -no-color
+        run: tofu validate -no-color
         working-directory: terraform/environments/prod
 
       - name: Tofu Plan
