@@ -25,19 +25,8 @@ jobs:
       TF_VAR_argo_github_token: ${{ secrets.TF_READER_ARGO_TOKEN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.TF_READER_CF_TOKEN }}
     steps:
-      - name: Verify if PR is mergeable
-        id: pr-check
-        run: |
-          if [[ -z "${{ github.event.pull_request.merge_commit_sha }}" ]]; then
-            echo "This PR is not mergeable. Exiting."
-            exit 1
-          fi
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - name: Checkout PR code
+        uses: kyma-project/test-infra/.github/actions/checkout@main
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
