@@ -6,6 +6,13 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+provider "kubernetes" {
+  host                   = module.talos.kubeconfig_data.host
+  client_certificate     = module.talos.kubeconfig_data.client_certificate
+  client_key             = module.talos.kubeconfig_data.client_key
+  cluster_ca_certificate = module.talos.kubeconfig_data.cluster_ca_certificate
+}
+
 provider "helm" {
   kubernetes {
     host                   = module.talos.kubeconfig_data.host
@@ -22,12 +29,6 @@ provider "kubectl" {
   cluster_ca_certificate = module.talos.kubeconfig_data.cluster_ca_certificate
 }
 
-provider "kubernetes" {
-  host                   = module.talos.kubeconfig_data.host
-  client_certificate     = module.talos.kubeconfig_data.client_certificate
-  client_key             = module.talos.kubeconfig_data.client_key
-  cluster_ca_certificate = module.talos.kubeconfig_data.cluster_ca_certificate
-}
 
 data "kubernetes_secret" "argo_cluster_password" {
   depends_on = [ helm_release.argocd ]
