@@ -1,6 +1,6 @@
 data "cloudflare_zone" "main" {
   filter = {
-    name = "malachowski.me"
+    name = var.public_domain
   }
 }
 
