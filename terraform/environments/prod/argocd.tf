@@ -39,10 +39,22 @@ resource "helm_release" "argocd" {
   version    = "7.7.11"
 
   create_namespace = true
+  wait             = true
+  wait_for_jobs    = true
+  timeout          = 600  # 10 minutes
+  
+  # Add cleanup on fail to avoid partial deployments
+  cleanup_on_fail = true
+}
+
+resource "time_sleep" "wait_for_argocd" {
+  depends_on = [helm_release.argocd]
+  
+  create_duration = "60s"
 }
 
 resource "argocd_application" "cluster_config" {
-  depends_on = [ kubectl_manifest.argo_private_repo_token, helm_release.argocd ]
+  depends_on = [ kubectl_manifest.argo_private_repo_token, helm_release.argocd, time_sleep.wait_for_argocd ]
 
   metadata {
     name      = "cluster-config"
