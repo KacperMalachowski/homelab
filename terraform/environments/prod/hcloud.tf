@@ -16,9 +16,9 @@ module "talos" {
 
   hcloud_token = var.hcloud_token
 
-  cluster_name = "kacpermalachowski.pl"
-  cluster_domain = "kacpermalachowski.pl.local"
-  cluster_api_host = "kube.kacpermalachowski.pl"
+  cluster_name = "malachowski.me"
+  cluster_domain = "malachowski.me.local"
+  cluster_api_host = "kube.malachowski.me"
 
   firewall_use_current_ip = false
   firewall_talos_api_source = local.any_api_source
