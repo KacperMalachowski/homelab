@@ -28,7 +28,7 @@ provider "kubernetes" {
 }
 
 data "kubernetes_secret" "argo_cluster_password" {
-  depends_on = [ helm_release.argocd ]
+  depends_on = [ helm_release.argocd, time_sleep.wait_for_argocd ]
 
   provider = kubernetes
 
@@ -45,6 +45,7 @@ provider "argocd" {
   
   # Add retry configuration for authentication issues
   insecure    = true
+  grpc_web    = true
   
   kubernetes {
     host                   = module.talos.kubeconfig_data.host
