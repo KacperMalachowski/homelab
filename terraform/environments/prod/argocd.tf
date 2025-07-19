@@ -56,10 +56,15 @@ resource "helm_release" "argocd" {
       params:
         # Enable insecure mode for internal communication
         server.insecure: true
+        # Disable TLS for gRPC-Web
+        server.grpc.web: false
     server:
       # Configure server settings
       config:
         url: "https://argocd.${var.public_domain}"
+      # Ensure server accepts insecure connections
+      extraArgs:
+        - --insecure
       ingress:
         enabled: false
     EOT
