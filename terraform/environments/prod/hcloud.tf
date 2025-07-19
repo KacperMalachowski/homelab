@@ -19,7 +19,7 @@ resource "null_resource" "domain_name" {
 
 module "talos" {
   source = "hcloud-talos/talos/hcloud"
-  version = "2.15.1"
+  version = "2.15.13"
 
   depends_on = [ null_resource.domain_name ]
 
