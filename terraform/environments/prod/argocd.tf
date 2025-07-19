@@ -45,12 +45,59 @@ resource "helm_release" "argocd" {
   
   # Add cleanup on fail to avoid partial deployments
   cleanup_on_fail = true
+  
+  # Configure ArgoCD to ensure proper initialization
+  values = [
+    <<-EOT
+    configs:
+      secret:
+        # Ensure the initial admin secret is created
+        createSecret: true
+      params:
+        # Enable insecure mode for internal communication
+        server.insecure: true
+    server:
+      # Configure server settings
+      config:
+        url: "https://argocd.${var.public_domain}"
+      ingress:
+        enabled: false
+    EOT
+  ]
 }
 
 resource "time_sleep" "wait_for_argocd" {
+  depends_on = [helm_release.argocd, kubectl_manifest.wait_for_argocd_server]
+  
+  create_duration = "120s"  # Increased to 2 minutes
+}
+
+resource "kubectl_manifest" "wait_for_argocd_server" {
   depends_on = [helm_release.argocd]
   
-  create_duration = "60s"
+  yaml_body = <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-argocd
+  namespace: argocd
+spec:
+  template:
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: wait
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Waiting for ArgoCD server to be ready..."
+          kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+          echo "ArgoCD server is ready!"
+      restartPolicy: Never
+  backoffLimit: 3
+YAML
 }
 
 resource "argocd_application" "cluster_config" {
