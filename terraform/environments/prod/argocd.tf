@@ -46,28 +46,24 @@ resource "helm_release" "argocd" {
   # Add cleanup on fail to avoid partial deployments
   cleanup_on_fail = true
   
-  # Configure ArgoCD to ensure proper initialization
+  # Use simpler values configuration to avoid state issues
   values = [
-    <<-EOT
-    configs:
-      secret:
-        # Ensure the initial admin secret is created
-        createSecret: true
-      params:
-        # Enable insecure mode for internal communication
-        server.insecure: true
-        # Disable TLS for gRPC-Web
-        server.grpc.web: false
-    server:
-      # Configure server settings
-      config:
-        url: "https://argocd.${var.public_domain}"
-      # Ensure server accepts insecure connections
-      extraArgs:
-        - --insecure
-      ingress:
-        enabled: false
-    EOT
+    yamlencode({
+      configs = {
+        secret = {
+          createSecret = true
+        }
+        params = {
+          "server.insecure" = "true"
+        }
+      }
+      server = {
+        extraArgs = ["--insecure"]
+        config = {
+          url = "https://argocd.${var.public_domain}"
+        }
+      }
+    })
   ]
 }
 
