@@ -3,12 +3,25 @@ locals {
     "0.0.0.0/0",
     "::/0"
   ]
+
+  public_domain = "malachowski.me"
+  private_domain = "malachowski.local"
+}
+
+resource "null_resource" "domain_name" {
+  # This resource is used to trigger the Talos module to update the domain name
+  # when the public or private domain changes.
+  triggers = {
+    public_domain  = local.public_domain
+    private_domain = local.private_domain
+  }
 }
 
 module "talos" {
   source = "hcloud-talos/talos/hcloud"
   version = "2.15.1"
 
+  depends_on = [ null_resource.domain_name ]
 
   talos_version = "v1.9.5"
   kubernetes_version = "1.30.3"
@@ -16,9 +29,9 @@ module "talos" {
 
   hcloud_token = var.hcloud_token
 
-  cluster_name = "malachowski.me"
-  cluster_domain = "malachowski.local"
-  cluster_api_host = "kube.malachowski.me"
+  cluster_name = local.public_domain
+  cluster_domain = local.private_domain
+  cluster_api_host = "kube.${local.public_domain}"
   enable_alias_ip = true
   output_mode_config_cluster_endpoint = "cluster_endpoint"
 
@@ -55,7 +68,7 @@ module "talos" {
 }
 
 resource "hcloud_load_balancer" "this" {
-  name = "kacpermalachowski-prod"
+  name = "malachowski-prod"
   load_balancer_type = "lb11"
 
   location = "hel1"
