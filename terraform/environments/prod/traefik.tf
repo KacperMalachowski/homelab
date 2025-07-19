@@ -1,4 +1,6 @@
 resource "argocd_application" "traefik" {
+  depends_on = [helm_release.argocd, time_sleep.wait_for_argocd]
+  
   metadata {
     name = "argo-traefik-chart"
     namespace = "argocd"
