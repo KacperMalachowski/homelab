@@ -43,12 +43,10 @@ provider "argocd" {
   username    = "admin"
   password    = data.kubernetes_secret.argo_cluster_password.data["password"]
   
-  # Add retry configuration for authentication issues
+  # Configuration for port-forward connection with proper TLS handling
   insecure    = true
-  grpc_web    = true
-  
-  # Add connection timeout and retry settings
-  plain_text  = true
+  plain_text  = true   # Use plain HTTP for port-forward to avoid TLS issues
+  grpc_web    = false  # Standard gRPC for port-forward
   
   kubernetes {
     host                   = module.talos.kubeconfig_data.host
