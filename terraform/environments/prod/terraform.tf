@@ -19,27 +19,12 @@ terraform {
 
     kubernetes = {
       source = "hashicorp/kubernetes"
-      version = "~> 2.29.0"
+      version = ">= 2.35.1"
     }
 
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 5"
-    }
-
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.9.0"
-    }
-
-    hcloud = {
-      source  = "hetznercloud/hcloud"
-      version = "~> 1.45"
-    }
-    
-    time = {
-      source  = "hashicorp/time"
-      version = ">= 0.9.0"
+      version = "~> 4.0"
     }
   }
 }
