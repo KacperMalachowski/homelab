@@ -19,11 +19,6 @@ jobs:
     permissions:
       contents: "read" # needed for gcp_auth
       id-token: "write" # needed for gcp_auth to create id token
-    env:
-      HCLOUD_TOKEN: ${{ secrets.TF_READER_HCLOUD_TOKEN }}
-      TF_VAR_hcloud_token: ${{ secrets.TF_READER_HCLOUD_TOKEN }}
-      TF_VAR_argo_github_token: ${{ secrets.TF_READER_ARGO_TOKEN }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.TF_READER_CF_TOKEN }}
     steps:
       - name: Checkout PR code
         uses: kyma-project/test-infra/.github/actions/checkout@main
@@ -37,14 +32,30 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_TERRAFORM_PLANNER_SERVICE_ACCOUNT_EMAIL }}
 
+      - id: 'secrets'
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+            tf-planner-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-gh-token
+            tf-planner-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-hcloud-token
+            tf-planner-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-cloudflare-token
+
       - name: Tofu Init
         run: tofu init -input=false
         working-directory: terraform/environments/prod
 
       - name: Tofu Validate
+        env:
+          GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
+          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-planner-cf-token }}
         run: tofu validate -no-color
         working-directory: terraform/environments/prod
 
       - name: Tofu Plan
         run: tofu plan -input=false -no-color -lock-timeout=300s
+        env:
+          GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
+          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-planner-cf-token }}
         working-directory: terraform/environments/prod

@@ -5,28 +5,28 @@ data "cloudflare_zone" "main" {
 }
 
 resource "cloudflare_dns_record" "this" {
-  type = "A"
+  type    = "A"
   zone_id = data.cloudflare_zone.main.zone_id
-  name = "@"
+  name    = "@"
   proxied = true
-  ttl = 1
+  ttl     = 1
   content = hcloud_load_balancer.this.ipv4
 }
 
 resource "cloudflare_dns_record" "kube" {
-  type = "A"
+  type    = "A"
   zone_id = data.cloudflare_zone.main.zone_id
-  name = "kube"
+  name    = "kube"
   proxied = true
-  ttl = 1
+  ttl     = 1
   content = hcloud_load_balancer.this.ipv4
 }
 
 resource "cloudflare_dns_record" "wildcard" {
-  type = "A"
+  type    = "A"
   zone_id = data.cloudflare_zone.main.zone_id
-  name = "*"
+  name    = "*"
   proxied = true
-  ttl = 1
+  ttl     = 1
   content = hcloud_load_balancer.this.ipv4
 }

@@ -13,7 +13,7 @@ module "talos" {
 
   talos_version = "v1.8.1"
 
-  cluster_name    = "edplanes-prod"
+  cluster_name    = "malachowski-prod"
   datacenter_name = "hel1-dc2"
 
   control_plane_count       = 1
@@ -25,14 +25,20 @@ module "talos" {
   disable_arm = true
 }
 resource "hcloud_load_balancer" "this" {
-  name = "edplanes-prod"
+  name               = "malachowski-prod"
   load_balancer_type = "lb11"
-  location = "hel1"
+  location           = "hel1"
+}
+
+resource "hcloud_load_balancer_network" "this" {
+  load_balancer_id = hcloud_load_balancer.this.id
+  network_id       = module.talos.hetzner_network_id
 }
 
 resource "hcloud_load_balancer_target" "this" {
-  type = "label_selector"
+  depends_on       = [hcloud_load_balancer_network.this]
+  type             = "label_selector"
   load_balancer_id = hcloud_load_balancer.this.id
-  label_selector = "role=control-plane"
-  use_private_ip = true
+  label_selector   = "role=control-plane"
+  use_private_ip   = true
 }

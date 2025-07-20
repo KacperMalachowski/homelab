@@ -16,11 +16,6 @@ jobs:
     permissions:
       contents: "read" # needed for gcp_auth
       id-token: "write" # needed for gcp_auth to create id token
-    env:
-      HCLOUD_TOKEN: ${{ secrets.TF_EXECUTOR_HCLOUD_TOKEN }}
-      TF_VAR_hcloud_token: ${{ secrets.TF_EXECUTOR_HCLOUD_TOKEN }}
-      TF_VAR_cloudflare_api_token: ${{ secrets.TF_EXECUTOR_CF_TOKEN }}
-      TF_VAR_argo_github_token: ${{ secrets.TF_READER_ARGO_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,10 +30,22 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
 
+      - id: 'secrets'
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+            tf-executor-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-gh-token
+            tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
+            tf-executor-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-cloudflare-token
+
       - name: Tofu Init
         run: tofu init -input=false
         working-directory: terraform/environments/prod
 
       - name: Tofu Apply
         run: tofu apply -input=false -no-color -lock-timeout=300s -auto-approve
+        env:
+          GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-executor-gh-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-executor-cf-token }}
         working-directory: terraform/environments/prod
