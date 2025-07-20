@@ -28,12 +28,12 @@ provider "kubernetes" {
 }
 
 data "kubernetes_secret" "argo_cluster_password" {
-  depends_on = [ helm_release.argocd ]
+  depends_on = [ helm_release.argocd, module.talos.kubeconfig_data ]
 
   provider = kubernetes
 
   metadata {
-    name = "argocd-initial-admin-secret"
+    name      = "argocd-initial-admin-secret"
     namespace = "argocd"
   }
 }
