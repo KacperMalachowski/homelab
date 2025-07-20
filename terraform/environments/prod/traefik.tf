@@ -1,9 +1,6 @@
 resource "argocd_application" "traefik" {
-  depends_on = [helm_release.argocd, time_sleep.wait_for_argocd]
-  
   metadata {
     name = "argo-traefik-chart"
-    namespace = "argocd"
   }
 
   wait = true
@@ -12,31 +9,29 @@ resource "argocd_application" "traefik" {
     destination {
       server = "https://kubernetes.default.svc"
     }
-
+ 
     source {
-      repo_url        = "https://github.com/traefik/traefik-helm-chart.git"
-      path            = "traefik"
-      target_revision = "v35.4.0"
-
+      repo_url = "https://github.com/traefik/traefik-helm-chart.git"
+      path = "traefik"
+      target_revision = "HEAD"
       helm {
         values = <<EOF
-logs:
-  general:
-    level: INFO
-  access:
-    enabled: true
-service:
-  annotations:
-    load-balancer.hetzner.cloud/location: hel1
-    load-balancer.hetzner.cloud/name: ${hcloud_load_balancer.this.name}
-EOF
+          logs:
+            general:
+              level: INFO
+            access: 
+              enabled: true
+          service:
+            annotations:
+              load-balancer.hetzner.cloud/location: hel1
+              load-balancer.hetzner.cloud/name: ${hcloud_load_balancer.this.name}
+          EOF
       }
     }
 
-
     sync_policy {
       automated {
-        prune     = true
+        prune   = true
         self_heal = true
       }
 
