@@ -46,6 +46,7 @@ jobs:
         run: tofu apply -input=false -no-color -lock-timeout=300s -auto-approve
         env:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-executor-gh-token }}
-          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
-          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-executor-cf-token }}
+          HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
+          TF_VAR_ssh_public_key: "{default=\"${{ vars.SSH_PUBLIC_KEY }}\"}"
         working-directory: terraform/environments/prod
