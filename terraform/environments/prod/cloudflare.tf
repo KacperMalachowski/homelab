@@ -10,7 +10,7 @@ resource "cloudflare_dns_record" "this" {
   name    = "@"
   proxied = true
   ttl     = 1
-  content = hcloud_load_balancer.this.ipv4
+  content = module.masters.hcloud_servers[0].ipv4_address
 }
 
 resource "cloudflare_dns_record" "kube" {
@@ -19,7 +19,7 @@ resource "cloudflare_dns_record" "kube" {
   name    = "kube"
   proxied = true
   ttl     = 1
-  content = hcloud_load_balancer.this.ipv4
+  content = module.masters.hcloud_servers[0].ipv4_address
 }
 
 resource "cloudflare_dns_record" "wildcard" {
@@ -28,5 +28,5 @@ resource "cloudflare_dns_record" "wildcard" {
   name    = "*"
   proxied = true
   ttl     = 1
-  content = hcloud_load_balancer.this.ipv4
+  content = module.masters.hcloud_servers[0].ipv4_address
 }
