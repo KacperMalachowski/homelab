@@ -8,7 +8,9 @@
     ":automergeMinor"
   ],
   "timezone": "UTC",
-  "schedule": ["before 6am on monday"],
+  "schedule": [
+    "before 6am on monday"
+  ],
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true
@@ -22,40 +24,61 @@
   "prHourlyLimit": 2,
   "packageRules": [
     {
-      "matchManagers": ["terraform"],
+      "matchManagers": [
+        "terraform"
+      ],
       "groupName": "Terraform providers and modules",
       "automerge": true,
-      "schedule": ["before 6am on monday"]
+      "schedule": [
+        "before 6am on monday"
+      ]
     },
     {
-      "matchManagers": ["pip_requirements"],
+      "matchManagers": [
+        "pip_requirements"
+      ],
       "groupName": "Python dependencies",
       "automerge": true,
-      "schedule": ["before 6am on monday"]
+      "schedule": [
+        "before 6am on monday"
+      ]
     },
     {
-      "matchPackagePatterns": ["^ansible"],
       "groupName": "Ansible packages",
-      "automerge": true
+      "automerge": true,
+      "matchPackageNames": [
+        "/^ansible/"
+      ]
     },
     {
-      "matchPackagePatterns": ["^docker"],
       "groupName": "Docker packages",
+      "automerge": true,
+      "matchPackageNames": [
+        "/^docker/"
+      ]
+    },
+    {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "automerge": true
     },
     {
-      "matchDepTypes": ["devDependencies"],
-      "automerge": true
-    },
-    {
-      "matchUpdateTypes": ["patch", "digest"],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
       "automerge": true
     }
   ],
   "terraform": {
-    "ignorePaths": ["**/.terraform/**"]
+    "ignorePaths": [
+      "**/.terraform/**"
+    ]
   },
   "pip_requirements": {
-    "fileMatch": ["(^|/)requirements\\.txt$"]
+    "managerFilePatterns": [
+      "/(^|/)requirements\\.txt$/"
+    ]
   }
 }
