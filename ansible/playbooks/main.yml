@@ -1,0 +1,6 @@
+- name: Setup VPS
+  import_playbook: setup/index.yml
+- name: Setup Swarm
+  import_playbook: swarm/index.yml
+- name: Deploy services
+  import_playbook: services/index.yml

@@ -5,6 +5,10 @@ module "masters" {
 
   ssh_public_key = var.ssh_public_key
   prefix         = "malachowski"
+
+  labels = {
+    "role" = "master"
+  }
 }
 
 

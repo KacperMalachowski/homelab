@@ -1,0 +1,4 @@
+- name: Deploy Traefik stack to Swarm manager
+  import_playbook: traefik/index.yml
+- name: Deploy Portainer stack to Swarm manager
+  import_playbook: portainer/index.yml

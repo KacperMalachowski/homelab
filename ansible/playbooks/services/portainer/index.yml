@@ -1,0 +1,18 @@
+- name: Deploy Portainer stack to Swarm manager
+  hosts: swarm_manager[0]
+  tasks:
+    - name: Copy stacks to manager node
+      ansible.builtin.copy:
+        src: .
+        dest: portainer/
+        mode: '0644'
+
+    - name: Install and setup portainer service
+      community.docker.docker_stack:
+        state: present
+        name: portainer
+        compose:
+          - docker-compose.yml
+      environment:
+        DOMAIN: "{{ ansible_domain }}"
+        PORTAINER_ADMIN_PASSWORD: "{{ portainer_admin_password }}"
