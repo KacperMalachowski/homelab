@@ -5,19 +5,31 @@
     - name: Initialize Docker Swarm
       community.docker.docker_swarm:
         state: present
-        advertise_addr: "{{ ansible_default_ipv4.address }}"
+        advertise_addr: "{{ ansible_ssh_host }}"
       register: swarm_init
+
+    - name: Get join-token for manager nodes
+      ansible.builtin.set_fact:
+        join_token_manager: "{{ hostvars[groups['swarm_manager'][0]].JoinTokens.Manager }}"
+      when: inventory_hostname in groups['swarm_manager']
+
+    - name: Get join-token for worker nodes
+      ansible.builtin.set_fact:
+        join_token_worker: "{{ hostvars[groups['swarm_manager'][0]].JoinTokens.Worker }}"
+      when: inventory_hostname in groups['swarm_worker']
 
     - name: Join manager nodes to the swarm
       community.docker.docker_swarm:
         state: join
-        join_token: "{{ swarm_init.join_token }}"
-        remote_addrs: "{{ groups['swarm_manager'] | map('extract', hostvars, 'ansible_default_ipv4.address') | list }}"
-      when: inventory_hostname in groups['swarm_manager']
+        join_token: "{{ join_token_manager }}"
+        remote_addrs: "{{ hostvars[groups['swarm_manager'][0]].ansible_host }}"
+      when:
+        - inventory_hostname in groups['swarm_manager']
+        - inventory_hostname != groups['swarm_manager'][0]
 
     - name: Join worker nodes to the swarm
       community.docker.docker_swarm:
         state: join
-        join_token: "{{ swarm_init.join_token }}"
-        remote_addrs: "{{ groups['swarm_worker'] | map('extract', hostvars, 'ansible_default_ipv4.address') | list }}"
+        join_token: "{{ join_token_worker }}"
+        remote_addrs: "{{ hostvars[groups['swarm_manager'][0]].ansible_host }}"
       when: inventory_hostname in groups['swarm_worker']

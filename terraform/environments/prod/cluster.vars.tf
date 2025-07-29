@@ -1,11 +1,11 @@
-variable "master_count" {
-  description = "Number of master servers to create"
+variable "manager_count" {
+  description = "Number of manager servers to create"
   type        = number
   default     = 1
 
   validation {
-    condition     = var.master_count > 0
-    error_message = "The number of master servers must be greater than zero"
+    condition     = var.manager_count > 0
+    error_message = "The number of manager servers must be greater than zero"
   }
 }
 
