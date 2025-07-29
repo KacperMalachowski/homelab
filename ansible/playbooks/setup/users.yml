@@ -1,0 +1,49 @@
+- name: Setup users
+  tags: users
+  hosts: all
+  gather_facts: false
+  ignore_unreachable: true
+  become: true
+  remote_user: root
+  vars:
+    users:
+      - name: ansible
+        authorized_key: "{{ authorized_key }}"
+        groups:
+          - sudo
+        shell: /bin/bash
+        create_home: true
+  tasks:
+    - name: Create user accounts
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        state: present
+        groups: "{{ item.groups | default([]) }}"
+        shell: "{{ item.shell | default('/bin/bash') }}"
+        create_home: "{{ item.create_home | default(true) }}"
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Add authorized SSH keys
+      ansible.posix.authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ item.authorized_key }}"
+        state: present
+        exclusive: false
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: item.authorized_key is defined
+
+    - name: Configure passwordless sudo for each user
+      ansible.builtin.copy:
+        content: "{{ '%s ALL=(ALL:ALL) NOPASSWD:ALL' | format(item.name) }}"
+        dest: "/etc/sudoers.d/{{ item.name }}-nopasswd"
+        mode: '0440'
+        owner: root
+        group: root
+        validate: 'visudo -cf %s'
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"

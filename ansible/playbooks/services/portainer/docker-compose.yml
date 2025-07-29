@@ -1,0 +1,81 @@
+version: '3.7'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:2.32.0-alpine
+    container_name: portainer
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock --admin-password "${PORTAINER_ADMIN_PASSWORD:-admin}"
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - portainer
+      - public
+      - monitoring
+    logging:
+      options:
+        max-size: "10m"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        delay: 15s
+        parallelism: 1
+        monitor: 10s
+        failure_action: rollback
+        max_failure_ratio: 0.55
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: 256M
+        reservations:
+          cpus: '0.15'
+          memory: 128M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN:-malachowski.me}`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.tls=true"
+      - "traefik.http.routers.portainer.tls.certresolver=le"
+      - "traefik.http.services.portainer.loadbalancer.passhostheader=true"
+      - "traefik.http.routers.portainer.middlewares=compresstraefik"
+      - "traefik.http.middlewares.compresstraefik.compress=true"
+
+  agent:
+    image: portainer/agent:2.32.0-alpine
+    container_name: portainer_agent
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - portainer
+      - monitoring
+    logging:
+      options:
+        max-size: "10m"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.platform.os == linux
+      update_config:
+        delay: 15s
+        parallelism: 1
+        monitor: 10s
+        failure_action: rollback
+        max_failure_ratio: 0.55
+      resources:
+        limits:
+          cpus: '0.35'
+          memory: 256M
+        reservations:
+          cpus: '0.15'
+          memory: 128M

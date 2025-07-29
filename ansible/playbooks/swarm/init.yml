@@ -1,0 +1,23 @@
+- name: Initialize Swarm cluster
+  hosts: swarm_manager[0]
+  become: true
+  tasks:
+    - name: Initialize Docker Swarm
+      community.docker.docker_swarm:
+        state: present
+        advertise_addr: "{{ ansible_default_ipv4.address }}"
+      register: swarm_init
+
+    - name: Join manager nodes to the swarm
+      community.docker.docker_swarm:
+        state: join
+        join_token: "{{ swarm_init.join_token }}"
+        remote_addrs: "{{ groups['swarm_manager'] | map('extract', hostvars, 'ansible_default_ipv4.address') | list }}"
+      when: inventory_hostname in groups['swarm_manager']
+
+    - name: Join worker nodes to the swarm
+      community.docker.docker_swarm:
+        state: join
+        join_token: "{{ swarm_init.join_token }}"
+        remote_addrs: "{{ groups['swarm_worker'] | map('extract', hostvars, 'ansible_default_ipv4.address') | list }}"
+      when: inventory_hostname in groups['swarm_worker']

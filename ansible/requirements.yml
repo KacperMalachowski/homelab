@@ -1,0 +1,4 @@
+collections:
+  - hetzner.hcloud
+  - devsec.hardening
+  - community.docker

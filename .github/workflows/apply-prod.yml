@@ -37,6 +37,7 @@ jobs:
             tf-executor-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-gh-token
             tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
             tf-executor-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-cloudflare-token
+            ansible-portainer-password:${{ vars.GCP_PROJECT_ID }}/ansible-portainer-admin-password
 
       - name: Tofu Init
         run: tofu init -input=false
@@ -50,3 +51,22 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
           TF_VAR_ssh_public_key: "{default=\"${{ vars.SSH_PUBLIC_KEY }}\"}"
         working-directory: terraform/environments/prod
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Create venv
+        run: python -m venv .venv
+
+      - name: Install dependencies
+        run: .venv/bin/pip install -r requirements.txt
+
+      - name: Install Ansible Dependencies
+        run: ansible-galaxy install -r requirements.yml
+        working-directory: ansible
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook playbooks/main.yml --extra-vars "@extra_vars.yaml" -e "portainer_admin_password=\"${{ steps.secrets.outputs.ansible-portainer-password }}\"" -e "authorized_keys=\"${{ vars.SSH_PUBLIC_KEY }}\""
+        working-directory: ansible
