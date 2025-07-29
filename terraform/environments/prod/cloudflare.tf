@@ -10,7 +10,7 @@ resource "cloudflare_dns_record" "this" {
   name    = "@"
   proxied = true
   ttl     = 1
-  content = module.masters.hcloud_servers[0].ipv4_address
+  content = module.managers.hcloud_servers[0].ipv4_address
 }
 
 resource "cloudflare_dns_record" "wildcard" {
@@ -19,5 +19,5 @@ resource "cloudflare_dns_record" "wildcard" {
   name    = "*"
   proxied = true
   ttl     = 1
-  content = module.masters.hcloud_servers[0].ipv4_address
+  content = module.managers.hcloud_servers[0].ipv4_address
 }
