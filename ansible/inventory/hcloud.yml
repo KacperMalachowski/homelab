@@ -1,4 +1,4 @@
 plugin: hetzner.hcloud.hcloud
 keyed_groups:
-  - key: labels.role
+  - key: hcloud_labels.role
     prefix: swarm
