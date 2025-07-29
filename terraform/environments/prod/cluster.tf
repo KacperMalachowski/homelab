@@ -10,5 +10,3 @@ module "masters" {
     "role" = "master"
   }
 }
-
-
