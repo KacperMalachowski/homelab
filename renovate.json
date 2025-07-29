@@ -28,20 +28,14 @@
         "terraform"
       ],
       "groupName": "Terraform providers and modules",
-      "automerge": true,
-      "schedule": [
-        "before 6am on monday"
-      ]
+      "automerge": true
     },
     {
       "matchManagers": [
         "pip_requirements"
       ],
       "groupName": "Python dependencies",
-      "automerge": true,
-      "schedule": [
-        "before 6am on monday"
-      ]
+      "automerge": true
     },
     {
       "groupName": "Ansible packages",
