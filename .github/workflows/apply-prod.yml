@@ -82,7 +82,7 @@ jobs:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
       - name: Run Ansible Playbook
-        run: ansible-playbook -i inventory playbooks/main.yml --extra-vars "@extra_vars.yml" -e "portainer_admin_password=\"${{ steps.secrets.outputs.ansible-portainer-password }}\"" -e "ansible_ssh_public_key=\"${{ vars.SA_SSH_PUBLIC_KEY }}\"" -e "admin_ssh_public_key=\"${{ vars.ADMIN_SSH_PUBLIC_KEY }}\""
+        run: ansible-playbook -i inventory playbooks/main.yml --extra-vars "@extra_vars.yml" -e "portainer_admin_password=\"${{ steps.secrets.outputs.ansible-portainer-password }}\"" -e "ansible_ssh_public_key=\"${{ vars.SA_SSH_PUBLIC_KEY }}\"" -e "admin_ssh_public_key=\"${{ vars.ADMIN_SSH_PUBLIC_KEY }}\"" --private-key ~/.ssh/id_rsa
         working-directory: ansible
         env:
           HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
