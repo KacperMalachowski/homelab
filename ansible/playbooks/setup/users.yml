@@ -8,7 +8,13 @@
   vars:
     users:
       - name: ansible
-        authorized_key: "{{ authorized_key }}"
+        authorized_key: "{{ ansible_ssh_public_key }}"
+        groups:
+          - sudo
+        shell: /bin/bash
+        create_home: true
+      - name: admin
+        authorized_key: "{{ admin_ssh_public_key }}"
         groups:
           - sudo
         shell: /bin/bash
