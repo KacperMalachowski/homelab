@@ -24,6 +24,6 @@
         state: present
         name: traefik
         compose:
-          - docker-compose.yml
+          - "traefik/docker-compose.yml"
       environment:
-        DOMAIN: "{{ ansible_domain }}"
+        DOMAIN: "{{ ansible_domain | default('malachowski.me') }}"
