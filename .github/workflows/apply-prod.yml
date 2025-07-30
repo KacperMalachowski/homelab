@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-executor-gh-token }}
           HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
           CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
-          TF_VAR_ssh_public_key: "{default=\"${{ vars.KACPER_SSH_PUBLIC_KEY }}\", service_account=\"${{ vars.SA_SSH_PUBLIC_KEY }}\"}"
+          TF_VAR_ssh_public_key: "{default=\"${{ vars.ADMIN_SSH_PUBLIC_KEY }}\", service_account=\"${{ vars.SA_SSH_PUBLIC_KEY }}\"}"
         working-directory: terraform/environments/prod
 
       - name: Setup Python
