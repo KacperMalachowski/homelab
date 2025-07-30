@@ -10,6 +10,8 @@ on:
     paths:
       - terraform/**
       - .github/workflows/apply-prod.yml
+      - ansible/**
+      - requirements.txt
 
 jobs:
   apply:
@@ -68,7 +70,7 @@ jobs:
         working-directory: ansible
 
       - name: Run Ansible Playbook
-        run: ansible-playbook playbooks/main.yml --extra-vars "@extra_vars.yml" -e "portainer_admin_password=\"${{ steps.secrets.outputs.ansible-portainer-password }}\"" -e "authorized_keys=\"${{ vars.SSH_PUBLIC_KEY }}\""
+        run: ansible-playbook -i inventory playbooks/main.yml --extra-vars "@extra_vars.yml" -e "portainer_admin_password=\"${{ steps.secrets.outputs.ansible-portainer-password }}\"" -e "authorized_keys=\"${{ vars.SSH_PUBLIC_KEY }}\""
         working-directory: ansible
         env:
           HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
