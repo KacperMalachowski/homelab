@@ -2,3 +2,4 @@ ansible==11.8.0
 ansible-lint==25.6.1
 docker==7.1.0
 requests==2.31.0
+python-dateutil==2.7.5
