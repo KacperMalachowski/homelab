@@ -3,8 +3,6 @@ version: '3.7'
 services:
   portainer:
     image: portainer/portainer-ce:2.32.0-alpine
-    container_name: portainer
-    restart: unless-stopped
     command: -H unix:///var/run/docker.sock --admin-password "${PORTAINER_ADMIN_PASSWORD:-admin}"
     ports:
       - "9000:9000"
@@ -39,19 +37,28 @@ services:
           memory: 128M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN:-malachowski.me}`)"
-      - "traefik.http.routers.portainer.entrypoints=websecure"
+      # HTTP router (will be redirected to HTTPS by global redirect)
+      - "traefik.http.routers.portainer-http.rule=Host(`portainer.${DOMAIN:-malachowski.me}`)"
+      - "traefik.http.routers.portainer-http.entrypoints=web"
+      - "traefik.http.routers.portainer-http.service=portainer"
+      # HTTPS router
+      - "traefik.http.routers.portainer-https.rule=Host(`portainer.${DOMAIN:-malachowski.me}`)"
+      - "traefik.http.routers.portainer-https.entrypoints=websecure"
+      - "traefik.http.routers.portainer-https.tls=true"
+      - "traefik.http.routers.portainer-https.tls.certresolver=le"
+      - "traefik.http.routers.portainer-https.service=portainer"
+      - "traefik.http.routers.portainer-https.middlewares=compresstraefik,secureheaders"
+      # Service definition
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.routers.portainer.tls=true"
-      - "traefik.http.routers.portainer.tls.certresolver=le"
       - "traefik.http.services.portainer.loadbalancer.passhostheader=true"
-      - "traefik.http.routers.portainer.middlewares=compresstraefik"
+      # Middleware
       - "traefik.http.middlewares.compresstraefik.compress=true"
+      - "traefik.http.middlewares.secureheaders.headers.sslredirect=true"
+      - "traefik.http.middlewares.secureheaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.secureheaders.headers.stsSeconds=31536000"
 
   agent:
     image: portainer/agent:2.32.0-alpine
-    container_name: portainer_agent
-    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
@@ -79,3 +86,15 @@ services:
         reservations:
           cpus: '0.15'
           memory: 128M
+
+networks:
+  portainer:
+    driver: overlay
+    attachable: true
+  public:
+    external: true
+  monitoring:
+    external: true
+
+volumes:
+  portainer_data:

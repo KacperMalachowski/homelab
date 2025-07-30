@@ -12,7 +12,7 @@
         state: present
         name: portainer
         compose:
-          - docker-compose.yml
+          - "portainer/docker-compose.yml"
       environment:
-        DOMAIN: "{{ ansible_domain }}"
-        PORTAINER_ADMIN_PASSWORD: "{{ portainer_admin_password }}"
+        DOMAIN: "{{ ansible_domain | default('malachowski.me') }}"
+        PORTAINER_ADMIN_PASSWORD: "{{ portainer_admin_password | password_hash('bcrypt') }}"

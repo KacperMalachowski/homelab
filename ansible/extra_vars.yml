@@ -1,1 +1,1 @@
-ansible_domain: "{{ ansible_domain | default('malachowski.me') }}"
+ansible_domain: "malachowski.me"
