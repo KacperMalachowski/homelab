@@ -1,7 +1,7 @@
 name: plan-prod
 
 concurrency:
-  group: terraform-prod
+  group: terraform-prod-plan
 
 on:
   pull_request_target:
@@ -21,7 +21,7 @@ jobs:
       id-token: "write" # needed for gcp_auth to create id token
     steps:
       - name: Checkout PR code
-        uses: kyma-project/test-infra/.github/actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -54,8 +54,11 @@ jobs:
 
       - name: Tofu Plan
         run: tofu plan -input=false -no-color -lock-timeout=300s
+        timeout-minutes: 10
         env:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
           TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
           TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-planner-cf-token }}
+          TF_VAR_ssh_public_key: "{default=\"${{ vars.SSH_PUBLIC_KEY }}\"}"
+          TF_LOG: DEBUG
         working-directory: terraform/environments/prod
