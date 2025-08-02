@@ -18,5 +18,20 @@
   "platformAutomerge": true,
   "rebaseWhen": "behind-base-branch",
   "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "semanticCommitType": "fix"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "semanticCommitType": "chore"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "semanticCommitType": "chore"
+    }
   ]
 }

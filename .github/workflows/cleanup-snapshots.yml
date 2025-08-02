@@ -1,0 +1,50 @@
+name: cleanup-snapshots
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Every Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read" # needed for gcp_auth
+      id-token: "write" # needed for gcp_auth to create id token
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
+
+      - id: "secrets"
+        uses: "google-github-actions/get-secretmanager-secrets@v2"
+        with:
+          secrets: |-
+            tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
+
+      - name: Setup Hetzner Cloud
+        uses: hetznercloud/setup-hcloud@v1
+
+      - name: Cleanup old snapshots
+        # Cleanup snapshots older than 7 days
+        run: |
+          echo "Cleaning up old snapshots..."
+          CUTOFF_DATE=$(date -d '7 days ago' --iso-8601=seconds)
+          echo "Cutoff date: $CUTOFF_DATE"
+
+          IMAGES=$(hcloud image list --type snapshot -output json | jq -r --arg cutoff "$CUTOFF_DATE" '.[] | select(.created < $cutoff) | .id')
+
+          if [ -n "$IMAGES" ]; then
+            echo "Deleting old snapshots: $IMAGES"
+            for IMAGE in $IMAGES; do
+              echo "Deleting snapshot ID: $IMAGE"
+              hcloud image delete "$IMAGE"
+            done
+          else
+            echo "No old snapshots to delete."
+          fi

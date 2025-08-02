@@ -1,0 +1,32 @@
+module "kube-hetzner" {
+  providers = {
+    hcloud = hcloud
+  }
+
+  source = "kube-hetzner/kube-hetzner/hcloud"
+
+  hcloud_token = var.hcloud_token
+
+  ssh_port        = var.ssh_port
+  ssh_public_key  = var.ssh_public_key
+  ssh_private_key = var.ssh_private_key
+
+  network_region = var.network_region
+
+
+  control_plane_nodepools = [
+    {
+      name        = "control-plane"
+      count       = 1
+      location    = "fsn1"
+      server_type = "cx22"
+      labels = [
+        "k3s/role=control-plane",
+      ]
+      taints = []
+    }
+  ]
+
+  create_kustomization = false
+  create_kubeconfig    = false
+}
