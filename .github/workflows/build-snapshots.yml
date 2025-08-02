@@ -17,6 +17,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: "read" # needed for gcp_auth
+      id-token: "write" # needed for gcp_auth to create id token
     strategy:
       matrix:
         snapshots: [ 'microos/hcloud' ]
@@ -48,6 +51,9 @@ jobs:
 
   remove-pr-snapshot:
     runs-on: ubuntu-latest
+    permissions:
+      contents: "read" # needed for gcp_auth
+      id-token: "write" # needed for gcp_auth to create id token
     if: github.event_name == 'pull_request_target' && github.event_name == 'pull_request'
     steps:
       - name: Setup Hetzner Cloud
