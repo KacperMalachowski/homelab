@@ -1,2 +1,0 @@
-- name: Initialize Swarm cluster
-  import_playbook: init.yml

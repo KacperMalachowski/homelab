@@ -1,0 +1,79 @@
+name: build-snapshots
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packer/**'
+      - ".github/workflows/build-snapshots.yml"
+  pull_request_target:
+    branches:
+      - main
+    paths:
+      - 'packer/**'
+      - ".github/workflows/build-snapshots.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        snapshots: [ 'microos/hcloud' ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
+
+      - id: 'secrets'
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+            tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
+
+      - name: Initialize Packer
+        run: packer init .
+        working-directory: packer/${{ matrix.snapshots }}
+
+      - name: Build Packer snapshot
+        env:
+          HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+        run: packer build -var "name_suffix=${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}" .
+        working-directory: packer/${{ matrix.snapshots }}
+
+  remove-pr-snapshot:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target' && github.event_name == 'pull_request'
+    steps:
+      - name: Setup Hetzner Cloud
+        uses: hetznercloud/setup-hcloud@v1
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
+
+      - id: 'secrets'
+        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+        with:
+          secrets: |-
+            tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
+
+      - name: Get this run snapshot ID
+        env:
+          HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+        id: get_snapshot_id
+        run: |
+          snapshot_id=$(hcloud image list -t snapshot -o json | jq '.[] | select(.description | contains("${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}")).id')
+          echo "snapshot_id=$snapshot_id" >> $GITHUB_OUTPUT
+
+      - name: Remove PR snapshot
+        run: |
+          snapshot_id=${{ steps.get_snapshot_id.outputs.snapshot_id }}
+          hcloud image delete $snapshot_id
