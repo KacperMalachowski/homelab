@@ -1,12 +1,10 @@
 packer {
   required_plugins {
     hcloud = {
-      version = "~> 1"
-      source  = "github.com/hetznercloud/hcloud"
+      version = "~> 1.0.5"
+      source  = "github.com/hashicorp/hcloud"
     }
   }
-
-  required_version = ">= 1.12.0"
 }
 
 variable "hcloud_token" {
@@ -31,11 +29,6 @@ variable "packages_to_install" {
   default = []
 }
 
-variable "k3s_version" {
-  type    = string
-  default = "1.6"
-}
-
 variable "name_suffix" {
   type    = string
   default = ""
@@ -53,6 +46,7 @@ locals {
         "audit",
         "bind-utils",
         "wireguard-tools",
+        "fuse",
         "open-iscsi",
         "nfs-client",
         "xfsprogs",
@@ -60,8 +54,11 @@ locals {
         "lvm2",
         "git",
         "cifs-utils",
+        "bash-completion",
         "mtr",
         "tcpdump",
+        "udica",
+        "qemu-guest-agent",
       ],
       var.packages_to_install
     )
@@ -85,7 +82,7 @@ locals {
     transactional-update --continue shell <<- EOF
       setenforce 0
       rpm --import http://rpm.rancher.io/public.key
-      zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_version}.stable.1/k3s-selinux-${var.k3s_version}-1.sle.noarch.rpm
+      zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
       zypper addlock k3s-selinux
       restorecon -Rv /etc/selinux/targeted/policy
       restorecon -Rv /var/lib
