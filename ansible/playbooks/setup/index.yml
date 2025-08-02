@@ -1,6 +1,0 @@
-- name: Add users playbook
-  import_playbook: users.yml
-- name: Harden system playbook
-  import_playbook: hardening.yml
-- name: Setup docker dependencies
-  import_playbook: docker.yml
