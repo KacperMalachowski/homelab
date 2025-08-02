@@ -125,6 +125,22 @@ source "hcloud" "microos-x86" {
   token = var.hcloud_token
 }
 
+source "hcloud" "microos-arm64" {
+  image = "ubuntu-22.04"
+  rescue = "linux64"
+  location = "fsn1"
+  server_type = "cax11"
+  snapshot_labels = {
+    "os" = "microos"
+    "k3s" = "true"
+    "arch" = "arm64"
+  }
+  snapshot_name = "microos-k3s-arm64${var.name_suffix != "" ? "-${var.name_suffix}" : ""}"
+
+  ssh_username = "root"
+  token = var.hcloud_token
+}
+
 build {
   sources = [
     "source.hcloud.microos-x86"
@@ -132,6 +148,32 @@ build {
 
   provisioner "shell" {
     inline = ["${local.download_image}${var.opensuse_microos_x86_link}"]
+  }
+
+  provisioner "shell" {
+    inline            = [local.write_image]
+    expect_disconnect = true
+  }
+
+  provisioner "shell" {
+    pause_before      = "5s"
+    inline            = [local.install_packages]
+    expect_disconnect = true
+  }
+
+  provisioner "shell" {
+    pause_before = "5s"
+    inline       = [local.clean_up]
+  }
+}
+
+build {
+  sources = [
+    "source.hcloud.microos-arm64"
+  ]
+
+  provisioner "shell" {
+    inline = ["${local.download_image}${var.opensuse_microos_arm64_link}"]
   }
 
   provisioner "shell" {
