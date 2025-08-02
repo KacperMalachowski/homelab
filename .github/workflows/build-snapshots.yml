@@ -51,6 +51,7 @@ jobs:
 
   remove-pr-snapshot:
     runs-on: ubuntu-latest
+    needs: build
     permissions:
       contents: "read" # needed for gcp_auth
       id-token: "write" # needed for gcp_auth to create id token
