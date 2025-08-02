@@ -101,8 +101,8 @@ locals {
     echo "Make sure to use Network Manager"
     touch /etc/NetworkManager/NetworkManager.conf
 
-    echo "done. Rebooting..."
-    sleep 1 && udevadm settle && reboot
+    sleep 1 && udevadm settle
+    echo "done"
   EOT
 }
 
