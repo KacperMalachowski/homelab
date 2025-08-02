@@ -118,6 +118,9 @@ source "hcloud" "microos-x86" {
     "os" = "microos"
     "k3s" = "true"
     "arch" = "x86"
+    # Label required for the snapshot to be recognized as a MicroOS snapshot
+    # by https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner
+    "microos-snapshot" = "yes"
   }
   snapshot_name = "microos-k3s-x86${var.name_suffix != "" ? "-${var.name_suffix}" : ""}"
 
@@ -134,6 +137,9 @@ source "hcloud" "microos-arm64" {
     "os" = "microos"
     "k3s" = "true"
     "arch" = "arm64"
+    # Label required for the snapshot to be recognized as a MicroOS snapshot
+    # by https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner
+    "microos-snapshot" = "yes"
   }
   snapshot_name = "microos-k3s-arm64${var.name_suffix != "" ? "-${var.name_suffix}" : ""}"
 
