@@ -68,7 +68,7 @@ locals {
 
   write_image = <<-EOT
     set -ex
-    echo "MicroOS image loadad, writing to disk..."
+    echo "MicroOS image loaded, writing to disk..."
     qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda
 
     echo "done. Rebooting..."
@@ -80,13 +80,13 @@ locals {
     echo "Reboot successful, installing packages..."
     transactional-update --continue pkg install -y ${local.needed_packages}
     transactional-update --continue shell <<- EOF
-      setenforce 0
-      rpm --import http://rpm.rancher.io/public.key
-      zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
-      zypper addlock k3s-selinux
-      restorecon -Rv /etc/selinux/targeted/policy
-      restorecon -Rv /var/lib
-      setenforce 1
+    setenforce 0
+    rpm --import https://rpm.rancher.io/public.key
+    zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
+    zypper addlock k3s-selinux
+    restorecon -Rv /etc/selinux/targeted/policy
+    restorecon -Rv /var/lib
+    setenforce 1
     EOF
 
     echo "done. Rebooting..."
