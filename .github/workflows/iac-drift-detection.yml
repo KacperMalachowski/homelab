@@ -72,7 +72,7 @@ jobs:
           exit $exitcode
 
       - name: Publish Plan
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v3.2.1
         with:
           name: plan
           path: plan
