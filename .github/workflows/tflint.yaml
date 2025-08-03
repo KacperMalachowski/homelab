@@ -34,7 +34,7 @@ jobs:
           key: ${{ runner.os }}-tflint-plugins-${{ hashFiles('.tflint.hcl') }}
 
       - name: Install TFLint
-        uses: terraform-linters/setup-tflint@v1
+        uses: terraform-linters/setup-tflint@v4
       
       - name: Show TFLint version
         run: tflint --version
