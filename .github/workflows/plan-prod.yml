@@ -32,8 +32,8 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_TERRAFORM_PLANNER_SERVICE_ACCOUNT_EMAIL }}
 
-      - id: 'secrets'
-        uses: 'google-github-actions/get-secretmanager-secrets@v2'
+      - id: "secrets"
+        uses: "google-github-actions/get-secretmanager-secrets@v2"
         with:
           secrets: |-
             tf-planner-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-gh-token
@@ -47,8 +47,10 @@ jobs:
       - name: Tofu Validate
         env:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
-          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
-          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-planner-cf-token }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+          TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
+          TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
         run: tofu validate -no-color
         working-directory: terraform/environments/prod
 
@@ -57,8 +59,8 @@ jobs:
         timeout-minutes: 10
         env:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
-          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
-          TF_VAR_cloudflare_api_token: ${{ steps.secrets.outputs.tf-planner-cf-token }}
-          TF_VAR_ssh_public_key: "{default=\"${{ vars.SSH_PUBLIC_KEY }}\"}"
-          TF_LOG: DEBUG
+          CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+          TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
+          TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
         working-directory: terraform/environments/prod
