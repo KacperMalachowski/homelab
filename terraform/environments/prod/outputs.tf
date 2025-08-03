@@ -1,4 +1,4 @@
 output "kubeconfig" {
-  value     = module.kube-hetzner.kubeconfig
+  value     = module.kube_hetzner.kubeconfig
   sensitive = true
 }
