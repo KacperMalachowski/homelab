@@ -6,7 +6,7 @@ data "cloudflare_zone" "this" {
 
 resource "cloudflare_dns_record" "this" {
   type    = "A"
-  zone_id = data.cloudflare_zone.this.id
+  zone_id = data.cloudflare_zone.this.zone_id
   name    = var.public_domain
   proxied = true
   ttl     = 1
@@ -15,7 +15,7 @@ resource "cloudflare_dns_record" "this" {
 
 resource "cloudflare_dns_record" "wildcard" {
   type    = "A"
-  zone_id = data.cloudflare_zone.this.id
+  zone_id = data.cloudflare_zone.this.zone_id
   name    = "*"
   proxied = true
   ttl     = 1
