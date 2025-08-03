@@ -28,6 +28,9 @@ module "kube_hetzner" {
     }
   ]
 
+
   create_kustomization = false
   create_kubeconfig    = false
+
+  allow_scheduling_on_control_plane = true
 }
