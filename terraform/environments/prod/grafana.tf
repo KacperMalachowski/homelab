@@ -17,25 +17,23 @@ resource "helm_release" "grafana" {
 
   values = [fileexists("${path.root}/${var.grafana_values_file}") == true ? file("${path.root}/${var.grafana_values_file}") : ""]
 
-  set {
+  set = [{
     name  = "persistence.enabled"
     value = var.grafana_enable_persistence
-  }
-
-  set {
-    name  = "persistence.storageClassName"
-    value = var.grafana_storageclass_name
-  }
-
-  set {
-    name  = "persistence.size"
-    value = var.grafana_storage_size
-  }
-
-  set {
-    name  = "adminPassword"
-    value = var.grafana_admin_password
-  }
+    },
+    {
+      name  = "persistence.storageClassName"
+      value = var.grafana_storageclass_name
+    },
+    {
+      name  = "persistence.size"
+      value = var.grafana_storage_size
+    },
+    {
+      name  = "adminPassword"
+      value = var.grafana_admin_password
+    }
+  ]
 }
 
 resource "kubernetes_manifest" "grafana_dashboard_ingressroute" {
@@ -53,7 +51,7 @@ resource "kubernetes_manifest" "grafana_dashboard_ingressroute" {
       routes = [
         {
           kind     = "Rule",
-          match    = "Host(`grafana.${var.domain}`)",
+          match    = "Host(`grafana.${var.public_domain}`)",
           priority = 10
           services = [
             {
