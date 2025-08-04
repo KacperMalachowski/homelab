@@ -1,3 +1,0 @@
-locals {
-  domain = "malachowski.me"
-}
