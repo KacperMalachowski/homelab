@@ -8,7 +8,7 @@ resource "helm_release" "prometheus" {
   namespace        = local.prometheus_namespace
   create_namespace = true
   repository       = "https://prometheus-community.github.io/helm-charts"
-  chart            = "prometheus"
+  chart            = "kube-prometheus-stack"
   version          = "27.29.0"
   timeout          = 800 # 10 minutes
 
