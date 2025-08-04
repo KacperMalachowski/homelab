@@ -1,7 +1,7 @@
 name: plan-prod
 
 concurrency:
-  group: terraform-prod-plan
+  group: terraform-prod
 
 on:
   pull_request_target:
