@@ -10,8 +10,8 @@ variable "prometheus_storage_size" {
   default     = "10Gi"
 }
 
-variable "prometheus_values_file" {
+variable "promstack_values_file" {
   type        = string
   description = "Path to the values file for the Prometheus Helm chart"
-  default     = "prometheus.values.yml"
+  default     = "promstack.values.yml"
 }
