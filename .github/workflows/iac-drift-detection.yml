@@ -1,4 +1,4 @@
-name: Tofu Configuration Drift Detection
+name: iac-drift-detection
 
 on:
   workflow_dispatch:
@@ -39,9 +39,9 @@ jobs:
         uses: "google-github-actions/get-secretmanager-secrets@v2"
         with:
           secrets: |-
-            tf-executor-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-gh-token
-            tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
-            tf-executor-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-cloudflare-token
+            tf-planner-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-gh-token
+            tf-planner-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-hcloud-token
+            tf-planner-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-cloudflare-token
             tf-ssh-private-key:${{ vars.GCP_PROJECT_ID }}/terraform-ssh-private-key
 
       - name: Setup Tofu
@@ -55,9 +55,9 @@ jobs:
       - name: Plan
         id: plan
         env:
-          GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-executor-gh-token }}
-          CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
-          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
+          GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-planner-gh-token }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-planner-cf-token }}
+          TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
           TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
         run: |

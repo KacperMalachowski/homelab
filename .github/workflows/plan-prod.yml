@@ -39,6 +39,7 @@ jobs:
             tf-planner-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-gh-token
             tf-planner-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-hcloud-token
             tf-planner-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-cloudflare-token
+            tf-ssh-private-key:${{ vars.GCP_PROJECT_ID }}/terraform-ssh-private-key
 
       - name: Tofu Init
         run: tofu init -input=false
