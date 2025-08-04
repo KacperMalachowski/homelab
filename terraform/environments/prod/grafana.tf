@@ -37,3 +37,36 @@ resource "helm_release" "grafana" {
     value = var.grafana_admin_password
   }
 }
+
+resource "kubernetes_manifest" "grafana_dashboard_ingressroute" {
+  depends_on = [helm_release.grafana]
+
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1",
+    kind       = "IngressRoute",
+    metadata = {
+      name      = "grafana",
+      namespace = local.grafana_namespace
+    },
+    spec = {
+      entryPoints = ["websecure"],
+      routes = [
+        {
+          kind     = "Rule",
+          match    = "Host(`grafana.${var.domain}`)",
+          priority = 10
+          services = [
+            {
+              name = "grafana",
+              port = 80
+            }
+          ]
+        }
+      ]
+      tls = {
+        certResolver = "default"
+      }
+    }
+  }
+
+}

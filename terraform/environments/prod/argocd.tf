@@ -51,3 +51,47 @@ resource "helm_release" "argocd_image_updater" {
 
   values = [fileexists("${path.root}/${var.argocd_image_updater_values_file}") == true ? file("${path.root}/${var.argocd_image_updater_values_file}") : ""]
 }
+
+resource "kubernetes_manifest" "argocd_ingressroute" {
+  depends_on = [helm_release.argocd]
+
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "argocd-server"
+      namespace = local.argocd_namespace
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          kind     = "Rule"
+          match    = "Host(`argocd.${var.domain}`)"
+          priority = 10
+          services = [
+            {
+              name = "argocd-server"
+              port = 80
+            }
+          ]
+        },
+        {
+          kind     = "Rule"
+          match    = "Host(`argocd.${var.domain}`) && Headers(`Content-Type`, `application/grpc`)"
+          priority = 11
+          services = [
+            {
+              name   = "argocd-server"
+              port   = 80
+              scheme = "h2c"
+            }
+          ]
+        }
+      ]
+      tls = {
+        certResolver = "default"
+      }
+    }
+  }
+}
