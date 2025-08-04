@@ -16,13 +16,14 @@ resource "helm_release" "prometheus" {
   # else apply the default values from the chart
   values = [fileexists("${path.root}/${var.prometheus_values_file}") == true ? file("${path.root}/${var.prometheus_values_file}") : ""]
 
-  set {
-    name  = "persistence.storageClass"
-    value = var.prometheus_storageclass_name
-  }
-
-  set {
-    name  = "persistence.size"
-    value = var.prometheus_storage_size
-  }
+  set = [
+    {
+      name  = "persistence.storageClass"
+      value = var.prometheus_storageclass_name
+    },
+    {
+      name  = "persistence.size"
+      value = var.prometheus_storage_size
+    }
+  ]
 }

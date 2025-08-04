@@ -16,26 +16,27 @@ resource "helm_release" "argocd" {
 
   values = [fileexists("${path.root}/${var.argocd_values_file}") == true ? file("${path.root}/${var.argocd_values_file}") : ""]
 
-  set_sensitive {
-    name  = "configs.secret.argocdServerAdminPassword"
-    value = var.argocd_admin_password
-  }
+  set_sensitive = [
+    {
+      name  = "configs.secret.argocdServerAdminPassword"
+      value = var.argocd_admin_password
+    }
+  ]
 
-  set {
-    name  = "configs.params.server\\.insecure"
-    value = true
-  }
-
-  set {
-    name  = "dex.enabled"
-    value = true
-  }
-
-  set {
-    name  = "nodeSelector.run"
-    value = "application"
-  }
-
+  set = [
+    {
+      name  = "configs.params.server\\.insecure"
+      value = true
+    },
+    {
+      name  = "dex.enabled"
+      value = true
+    },
+    {
+      name  = "nodeSelector.run"
+      value = "application"
+    }
+  ]
 }
 
 resource "helm_release" "argocd_image_updater" {
@@ -67,7 +68,7 @@ resource "kubernetes_manifest" "argocd_ingressroute" {
       routes = [
         {
           kind     = "Rule"
-          match    = "Host(`argocd.${var.domain}`)"
+          match    = "Host(`argocd.${var.public_domain}`)"
           priority = 10
           services = [
             {
@@ -78,7 +79,7 @@ resource "kubernetes_manifest" "argocd_ingressroute" {
         },
         {
           kind     = "Rule"
-          match    = "Host(`argocd.${var.domain}`) && Headers(`Content-Type`, `application/grpc`)"
+          match    = "Host(`argocd.${var.public_domain}`) && Headers(`Content-Type`, `application/grpc`)"
           priority = 11
           services = [
             {

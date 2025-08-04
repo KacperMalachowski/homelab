@@ -6,7 +6,7 @@ provider "cloudflare" {}
 
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host = module.kube_hetzner.kubeconfig_data.host
 
     client_certificate     = module.kube_hetzner.kubeconfig_data.client_certificate
