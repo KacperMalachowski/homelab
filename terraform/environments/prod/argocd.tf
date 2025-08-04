@@ -46,7 +46,7 @@ resource "helm_release" "argocd_image_updater" {
   name             = "${local.argocd_release_name}-image-updater"
 
   repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd-image-updater"
+  chart      = "argocd-image-updater"
   version    = "0.12.3"
 
   values = [fileexists("${path.root}/${var.argocd_image_updater_values_file}") == true ? file("${path.root}/${var.argocd_image_updater_values_file}") : ""]
