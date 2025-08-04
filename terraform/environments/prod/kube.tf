@@ -18,7 +18,7 @@ module "kube_hetzner" {
   control_plane_nodepools = [
     {
       name        = "control-plane"
-      count       = 1
+      count       = 3
       location    = "fsn1"
       server_type = "cx22"
       labels = [
