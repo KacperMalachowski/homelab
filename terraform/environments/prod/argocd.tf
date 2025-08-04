@@ -23,7 +23,7 @@ resource "helm_release" "argocd" {
 
   set {
     name  = "configs.params.server\\.insecure"
-    value = false
+    value = true
   }
 
   set {
