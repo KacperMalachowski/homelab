@@ -18,12 +18,27 @@ module "kube_hetzner" {
   control_plane_nodepools = [
     {
       name        = "control-plane"
-      count       = 3
+      count       = 1
       location    = "fsn1"
       server_type = "cx22"
       labels = [
         "k3s/role=control-plane",
       ]
+      taints = []
+    }
+  ]
+
+  autoscaler_nodepools = [
+    {
+      name        = "autoscaler"
+      server_type = "cx22"
+      location    = "fsn1"
+      min_nodes   = 0
+      max_nodes   = 3
+      labels = {
+        "k3s/role" = "worker",
+        "k3s/type" = "autoscaler",
+      }
       taints = []
     }
   ]
