@@ -3,6 +3,10 @@ locals {
   promstack_namespace    = "monitoring"
 }
 
+data "google_secret_manager_secret_version" "grafana_admin_password" {
+  secret = "grafana-admin-password"
+}
+
 resource "helm_release" "promstack" {
   name             = local.promstack_release_name
   namespace        = local.promstack_namespace
@@ -15,6 +19,11 @@ resource "helm_release" "promstack" {
   # If values file specified by the var.values_file input variable exists then apply the values from this file
   # else apply the default values from the chart
   values = [fileexists("${path.root}/${var.promstack_values_file}") == true ? file("${path.root}/${var.promstack_values_file}") : ""]
+
+  set_sensitive = [{
+    name  = "grafana.adminPassword"
+    value = data.google_secret_manager_secret_version.grafana_admin_password.secret_data
+  }]
 }
 
 

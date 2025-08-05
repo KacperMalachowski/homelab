@@ -3,6 +3,10 @@ locals {
   argocd_namespace    = "argocd"
 }
 
+data "google_secret_manager_secret_version" "argocd_admin_password" {
+  secret = "argocd-admin-password"
+}
+
 resource "helm_release" "argocd" {
 
   name             = local.argocd_release_name
@@ -19,7 +23,7 @@ resource "helm_release" "argocd" {
   set_sensitive = [
     {
       name  = "configs.secret.argocdServerAdminPassword"
-      value = var.argocd_admin_password
+      value = bcrypt(data.google_secret_manager_secret_version.argocd_admin_password.secret_data, 10)
     }
   ]
 
