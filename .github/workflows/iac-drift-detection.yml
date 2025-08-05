@@ -1,5 +1,9 @@
 name: iac-drift-detection
 
+concurrency:
+  group: terraform-prod
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   schedule:

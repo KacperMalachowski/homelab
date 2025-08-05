@@ -2,6 +2,7 @@ name: iac-plan
 
 concurrency:
   group: terraform-prod
+  cancel-in-progress: false
 
 on:
   pull_request_target:
