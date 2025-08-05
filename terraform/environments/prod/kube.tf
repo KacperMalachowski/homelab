@@ -28,20 +28,20 @@ module "kube_hetzner" {
     }
   ]
 
-  autoscaler_nodepools = [
-    {
-      name        = "autoscaler"
-      server_type = "cx22"
-      location    = "fsn1"
-      min_nodes   = 0
-      max_nodes   = 3
-      labels = {
-        "k3s/role" = "worker",
-        "k3s/type" = "autoscaler",
-      }
-      taints = []
-    }
-  ]
+  # autoscaler_nodepools = [
+  #   {
+  #     name        = "autoscaler"
+  #     server_type = "cx22"
+  #     location    = "fsn1"
+  #     min_nodes   = 0
+  #     max_nodes   = 3
+  #     labels = {
+  #       "k3s/role" = "worker",
+  #       "k3s/type" = "autoscaler",
+  #     }
+  #     taints = []
+  #   }
+  # ]
 
 
   create_kustomization = false
