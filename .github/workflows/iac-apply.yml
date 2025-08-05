@@ -1,4 +1,4 @@
-name: apply-prod
+name: iac-apply
 
 concurrency:
   group: terraform-prod
@@ -19,6 +19,13 @@ jobs:
       contents: "read" # needed for gcp_auth
       id-token: "write" # needed for gcp_auth to create id token
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: ["prod"]
+      fail-fast: false
+    defaults:
+      run:
+        working-directory: "terraform/environments/${{ matrix.environment }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +50,6 @@ jobs:
 
       - name: Tofu Init
         run: tofu init -input=false
-        working-directory: terraform/environments/prod
 
       - name: Tofu Apply
         run: tofu apply -input=false -no-color -lock-timeout=300s -auto-approve
@@ -53,4 +59,3 @@ jobs:
           TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
           TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
-        working-directory: terraform/environments/prod
