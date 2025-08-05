@@ -2,6 +2,7 @@ name: iac-apply
 
 concurrency:
   group: terraform-prod
+  cancel-in-progress: false
 
 on:
   push:
