@@ -13,7 +13,7 @@ resource "helm_release" "promstack" {
   create_namespace = true
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
-  version          = "75.16.0"
+  version          = "75.18.1"
   timeout          = 800 # 10 minutes
 
   # If values file specified by the var.values_file input variable exists then apply the values from this file
