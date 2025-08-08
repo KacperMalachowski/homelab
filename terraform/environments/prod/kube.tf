@@ -48,4 +48,13 @@ module "kube_hetzner" {
   create_kubeconfig    = false
 
   allow_scheduling_on_control_plane = true
+
+  extra_firewall_rules = [
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "22"
+      destination_ips = ["0.0.0.0/0"]
+    }
+  ]
 }
