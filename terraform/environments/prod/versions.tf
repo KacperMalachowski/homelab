@@ -20,6 +20,16 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
     }
+
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
+
+    flux = {
+      source  = "fluxcd/flux"
+      version = ">= 1.2"
+    }
   }
 
   required_version = ">= 1.3.0"
