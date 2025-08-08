@@ -18,5 +18,5 @@ resource "flux_bootstrap_git" "prod" {
   depends_on = [github_repository_deploy_key.flux, module.kube_hetzner]
 
   embedded_manifests = true
-  path               = "clusters/prod/flux-system"
+  path               = "clusters/prod"
 }
