@@ -55,6 +55,7 @@ module "kube_hetzner" {
       protocol        = "tcp"
       port            = "22"
       destination_ips = ["0.0.0.0/0"]
+      description     = "Allow SSH access to anywhere"
     }
   ]
 }
