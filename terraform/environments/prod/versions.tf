@@ -30,6 +30,11 @@ terraform {
       source  = "fluxcd/flux"
       version = ">= 1.2"
     }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.0"
+    }
   }
 
   required_version = ">= 1.3.0"
