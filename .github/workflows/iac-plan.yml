@@ -29,7 +29,7 @@ jobs:
         working-directory: "terraform/environments/${{ matrix.environment }}"
     steps:
       - name: Checkout PR code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1.0.6
