@@ -1,5 +1,9 @@
 name: build-snapshots
 
+concurrency:
+  group: snapshots-prod
+  cancel-in-progress: false
+
 on:
   push:
     branches:
