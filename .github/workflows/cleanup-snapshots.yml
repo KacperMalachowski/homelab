@@ -37,7 +37,7 @@ jobs:
           CUTOFF_DATE=$(date -d '7 days ago' --iso-8601=seconds)
           echo "Cutoff date: $CUTOFF_DATE"
 
-          IMAGES=$(hcloud image list --type snapshot -output json | jq -r --arg cutoff "$CUTOFF_DATE" '.[] | select(.created < $cutoff) | .id')
+          IMAGES=$(hcloud image list --type snapshot --output json | jq -r --arg cutoff "$CUTOFF_DATE" '.[] | select(.created < $cutoff) | .id')
 
           if [ -n "$IMAGES" ]; then
             echo "Deleting old snapshots: $IMAGES"
