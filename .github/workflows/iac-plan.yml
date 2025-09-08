@@ -41,7 +41,7 @@ jobs:
           service_account: ${{ vars.GCP_TERRAFORM_PLANNER_SERVICE_ACCOUNT_EMAIL }}
 
       - id: "secrets"
-        uses: "google-github-actions/get-secretmanager-secrets@v2"
+        uses: "google-github-actions/get-secretmanager-secrets@v3"
         with:
           secrets: |-
             tf-planner-gh-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-gh-token
