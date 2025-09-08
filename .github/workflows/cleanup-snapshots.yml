@@ -31,6 +31,8 @@ jobs:
         uses: hetznercloud/setup-hcloud@v1
 
       - name: Cleanup old snapshots
+        env:
+          HCLOUD_TOKEN: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
         # Cleanup snapshots older than 7 days
         run: |
           echo "Cleaning up old snapshots..."
