@@ -16,20 +16,16 @@ permissions:
 jobs:
   plan:
     name: Plan Fix if needed
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, local]
     permissions:
       contents: read
       issues: write
       id-token: write
     outputs:
       tfplanExitCode: ${{ steps.plan.outputs.exitcode }}
-    strategy:
-      matrix:
-        environment: ["prod"]
-      fail-fast: false
     defaults:
       run:
-        working-directory: "terraform/environments/${{ matrix.environment }}"
+        working-directory: "terraform"
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
@@ -48,6 +44,7 @@ jobs:
             tf-planner-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-hcloud-token
             tf-planner-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-planner-cloudflare-token
             tf-ssh-private-key:${{ vars.GCP_PROJECT_ID }}/terraform-ssh-private-key
+            tf-planner-main-router-password:${{ vars.GCP_PROJECT_ID }}/terraform-planner-main-router-password
 
       - name: Setup Tofu
         uses: opentofu/setup-opentofu@v1.0.6
@@ -65,6 +62,7 @@ jobs:
           TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-planner-hcloud-token }}
           TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
+          TF_VAR_main_router_password: ${{ steps.secrets.outputs.tf-planner-main-router-password }}
         run: |
           export exitcode=0
           tofu plan -detailed-exitcode -no-color -out plan || export exitcode=$?
@@ -123,11 +121,11 @@ jobs:
               creator: creator,
               title: title
             })
-              
+
             if( issues.data.length > 0 ) {
               // We assume there shouldn't be more than 1 open issue, since we update any issue we find
               const issue = issues.data[0]
-              
+
               if ( issue.body == body ) {
                 console.log('Drift Detected: Found matching issue with duplicate content')
               } else {
@@ -168,10 +166,10 @@ jobs:
               creator: creator,
               title: title
             })
-              
+
             if( issues.data.length > 0 ) {
               const issue = issues.data[0]
-              
+
               github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,

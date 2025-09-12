@@ -19,14 +19,10 @@ jobs:
     permissions:
       contents: "read" # needed for gcp_auth
       id-token: "write" # needed for gcp_auth to create id token
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        environment: ["prod"]
-      fail-fast: false
+    runs-on: [self-hosted, local]
     defaults:
       run:
-        working-directory: "terraform/environments/${{ matrix.environment }}"
+        working-directory: "terraform"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -48,6 +44,7 @@ jobs:
             tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
             tf-executor-cf-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-cloudflare-token
             tf-ssh-private-key:${{ vars.GCP_PROJECT_ID }}/terraform-ssh-private-key
+            tf-executor-main-router-password:${{ vars.GCP_PROJECT_ID }}/terraform-executor-main-router-password
 
       - name: Tofu Init
         run: tofu init -input=false
@@ -58,5 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ steps.secrets.outputs.tf-executor-gh-token }}
           CLOUDFLARE_API_TOKEN: ${{ steps.secrets.outputs.tf-executor-cf-token }}
           TF_VAR_hcloud_token: ${{ steps.secrets.outputs.tf-executor-hcloud-token }}
-          TF_VAR_ssh_public_key: ${{ vars.TF_SSH_PUBLIC_KEY }}
+          TF_VAR_ssh_public_key: ${_{ vars.TF_SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ steps.secrets.outputs.tf-ssh-private-key }}
+          TF_VAR_main_router_password: ${{ steps.secrets.outputs.tf-executor-main-router-password }}
