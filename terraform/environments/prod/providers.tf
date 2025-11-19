@@ -4,6 +4,8 @@ provider "hcloud" {
 
 provider "cloudflare" {}
 
+provider "github" {}
+
 
 provider "helm" {
   kubernetes = {
