@@ -5,17 +5,18 @@ concurrency:
   cancel-in-progress: false
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - 'packer/**'
+      - "packer/**"
       - ".github/workflows/build-snapshots.yml"
   pull_request_target:
     branches:
       - main
     paths:
-      - 'packer/**'
+      - "packer/**"
       - ".github/workflows/build-snapshots.yml"
 
 jobs:
@@ -26,7 +27,7 @@ jobs:
       id-token: "write" # needed for gcp_auth to create id token
     strategy:
       matrix:
-        snapshots: [ 'microos/hcloud' ]
+        snapshots: ["microos/hcloud"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -37,8 +38,8 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
 
-      - id: 'secrets'
-        uses: 'google-github-actions/get-secretmanager-secrets@v3'
+      - id: "secrets"
+        uses: "google-github-actions/get-secretmanager-secrets@v3"
         with:
           secrets: |-
             tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
@@ -70,8 +71,8 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.GCP_TERRAFORM_EXECUTOR_SERVICE_ACCOUNT_EMAIL }}
 
-      - id: 'secrets'
-        uses: 'google-github-actions/get-secretmanager-secrets@v3'
+      - id: "secrets"
+        uses: "google-github-actions/get-secretmanager-secrets@v3"
         with:
           secrets: |-
             tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
