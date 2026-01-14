@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1.0.7
+        uses: opentofu/setup-opentofu@v1.0.8
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
