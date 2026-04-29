@@ -28,7 +28,7 @@ jobs:
             tf-executor-hcloud-token:${{ vars.GCP_PROJECT_ID }}/terraform-executor-hcloud-token
 
       - name: Setup Hetzner Cloud
-        uses: hetznercloud/setup-hcloud@v1
+        uses: hetznercloud/setup-hcloud@v2
 
       - name: Cleanup old snapshots
         env:

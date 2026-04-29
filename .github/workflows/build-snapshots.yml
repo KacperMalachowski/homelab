@@ -63,7 +63,7 @@ jobs:
     if: github.event_name == 'pull_request_target' && github.event_name == 'pull_request'
     steps:
       - name: Setup Hetzner Cloud
-        uses: hetznercloud/setup-hcloud@v1
+        uses: hetznercloud/setup-hcloud@v2
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
