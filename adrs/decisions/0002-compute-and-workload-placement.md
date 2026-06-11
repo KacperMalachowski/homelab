@@ -29,8 +29,10 @@ class of workload run?
 ## Decision outcome
 
 - **Run the on-prem Kubernetes cluster on Proxmox VMs using the same distribution
-  as Hetzner (Talos)**, for one operational model across sites. (Open item: confirm
-  Proxmox memory headroom; k3s is the fallback if footprint is too tight.)
+  as Hetzner (Talos)**, for one operational model across sites. k3s was considered
+  as a lighter alternative but rejected: the host has enough headroom for a small
+  (non-HA) Talos cluster, and consistency and security-by-default outweigh the
+  memory saving.
 - **Run Home Assistant as a dedicated VM, not in Kubernetes**, so it keeps USB
   radio passthrough and its add-on ecosystem and is insulated from cluster churn.
 - **Host public-facing services on a dedicated, isolated worker pool** within the
@@ -45,5 +47,5 @@ class of workload run?
   (policy-based) isolation still leaves node-level cluster reach if a public
   workload is compromised — accepted for this threat model, upgradeable to a
   separate DMZ cluster later.
-- Note — distribution version, node counts, pool labels/taints, namespaces and
-  policies live in the tracking issues and config.
+- Note — distribution version, node counts, sizing, pool labels/taints, namespaces
+  and policies live in the tracking issues and config.
