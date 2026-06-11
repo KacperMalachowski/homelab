@@ -14,6 +14,7 @@ class of workload run?
 
 ## Decision drivers
 
+- Footprint and hands-on operability on a single, modest (16 GB) host.
 - Consistency with the existing Talos/Hetzner cluster and tooling.
 - Security-by-default and reliability of critical home services.
 - Ability to host public services without inbound exposure.
@@ -28,11 +29,11 @@ class of workload run?
 
 ## Decision outcome
 
-- **Run the on-prem Kubernetes cluster on Proxmox VMs using the same distribution
-  as Hetzner (Talos)**, for one operational model across sites. k3s was considered
-  as a lighter alternative but rejected: the host has enough headroom for a small
-  (non-HA) Talos cluster, and consistency and security-by-default outweigh the
-  memory saving.
+- **Run the on-prem Kubernetes cluster on Proxmox VMs using k3s.** Talos (as used
+  on Hetzner) was the alternative; k3s was chosen for its lighter footprint on the
+  modest host, simpler hands-on operation, and easier Raspberry Pi integration. The
+  trade-off is accepted: the on-prem cluster diverges from the Hetzner Talos model,
+  and its node OS must be managed (patched/hardened) rather than being immutable.
 - **Run Home Assistant as a dedicated VM, not in Kubernetes**, so it keeps USB
   radio passthrough and its add-on ecosystem and is insulated from cluster churn.
 - **Host public-facing services on a dedicated, isolated worker pool** within the
@@ -41,11 +42,15 @@ class of workload run?
 
 ### Consequences
 
-- Good — one cluster model across sites; critical smart-home infra decoupled from
-  the cluster lifecycle; public services with zero open ports and contained reach.
-- Bad — Home Assistant sits outside GitOps and needs its own backup path; soft
-  (policy-based) isolation still leaves node-level cluster reach if a public
-  workload is compromised — accepted for this threat model, upgradeable to a
-  separate DMZ cluster later.
+- Good — light footprint leaves ample headroom on the host; easy to operate and
+  extend (incl. SBC/RPi nodes); critical smart-home infra decoupled from the
+  cluster lifecycle; public services with zero open ports and contained reach.
+- Bad — diverges from the Hetzner Talos model (two operational paradigms); the node
+  OS lifecycle (patching, hardening, SSH) must be managed via Ansible, and the
+  setup is less immutable/secure-by-default than Talos — mitigated by hardening and
+  keeping the host minimal. Home Assistant sits outside GitOps and needs its own
+  backup path; soft (policy-based) isolation still leaves node-level cluster reach
+  if a public workload is compromised — accepted for this threat model, upgradeable
+  to a separate DMZ cluster later.
 - Note — distribution version, node counts, sizing, pool labels/taints, namespaces
   and policies live in the tracking issues and config.
