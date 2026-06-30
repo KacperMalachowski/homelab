@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-06-11
+- Refined by [0006](0006-trust-tiers-and-workload-exposure-placement.md) (2026-06-30) — public-facing workloads move to the cloud cluster; the home DMZ/public pool is deferred.
 
 ## Context and problem statement
 

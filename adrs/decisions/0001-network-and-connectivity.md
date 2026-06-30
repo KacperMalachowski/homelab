@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-06-11
+- Refined by [0006](0006-trust-tiers-and-workload-exposure-placement.md) (2026-06-30) — adds a `services` trust tier distinct from mgmt.
 
 ## Context and problem statement
 
