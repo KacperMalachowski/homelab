@@ -23,13 +23,13 @@ How should home infrastructure be automated and delivered?
 
 - Runner safety: harden the public repo vs. a private automation repo vs. make the
   whole repo private.
-- Tooling: a single tool (all-Terraform) vs. Terraform + Ansible + ArgoCD.
+- Tooling: a single tool (all-Terraform) vs. Terraform + Ansible + Flux.
 - Network-device changes from CI: apply directly vs. apply with auto-rollback.
 
 ## Decision outcome
 
 - **Manage everything as code with a small toolset**: Terraform for provisioning,
-  Ansible for device/OS configuration, and ArgoCD for in-cluster delivery.
+  Ansible for device/OS configuration, and Flux for in-cluster delivery.
 - **Run a self-hosted, ephemeral runner inside the network** on a node decoupled
   from the workloads it manages, and **harden the public repo** so untrusted code
   can never execute on it — with making the repo private as the escape hatch if
@@ -47,3 +47,5 @@ How should home infrastructure be automated and delivered?
   correct (private is the escape hatch); Ansible is one added tool.
 - Note — specific workflow triggers, environment/approval settings, runner
   placement and rollback mechanics live in the tracking issues and config.
+- Note — corrected 2026-06-30 (#193): in-cluster delivery is **Flux**, not
+  ArgoCD, aligning the record with `CLAUDE.md` and the tracking issues.
