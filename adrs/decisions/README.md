@@ -30,3 +30,4 @@ implementation changes.
 | [0001](0001-network-and-connectivity.md) | Network and connectivity architecture | Accepted |
 | [0002](0002-compute-and-workload-placement.md) | Compute and workload placement | Accepted |
 | [0003](0003-infrastructure-automation-and-delivery.md) | Infrastructure automation and delivery | Accepted |
+| [0006](0006-trust-tiers-and-workload-exposure-placement.md) | Trust tiers and workload exposure placement | Accepted |
