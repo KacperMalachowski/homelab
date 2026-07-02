@@ -5,17 +5,18 @@
 
 ## Context and problem statement
 
-The homelab was reset to a clean slate and is being rebuilt as code. The prior
-arrangement split infrastructure/provisioning (this repository) from the cluster
-manifests, which lived in a separate repository consumed by the in-cluster GitOps
-controller. The rebuild's primary driver is disaster recovery and portability —
-restoring the whole homelab quickly, including after a physical move to a new home.
-How should the code be organised across repositories?
+The homelab is built as code spanning a home network, on-premises compute, in-cluster
+workloads, CI and a decision log. Provisioning lives in this repository while the cluster
+manifests live in a separate repository consumed by the in-cluster GitOps controller. The
+primary driver for how that code is organised is disaster recovery and portability —
+restoring the whole homelab quickly, including after a physical move to a new home. How
+should the code be organised across repositories?
 
 ## Decision drivers
 
-- Disaster recovery / move: rebuilding under stress should not require reconciling
-  versions across several repositories.
+- Disaster recovery / move: a rebuild under stress should follow a single ordered,
+  step-by-step procedure — an aviation-style quick-reference handbook — not a
+  reconciliation of versions across several repositories.
 - Maintainability for a single administrator: a cross-cutting change (e.g. a new
   network zone plus the workload that lives in it) should be reviewable and revertable
   as one unit.
@@ -39,9 +40,9 @@ atomically in a single reviewed change. The GitOps controller is pointed at one
 path-scoped directory so infrastructure commits it does not own are filtered out, and
 that manifests directory is kept self-contained so a future public-facing cluster can
 be extracted into its own repository later without disturbing the infrastructure roots.
-The prior split existed to keep manifests public while infrastructure stayed private and
-to give the controller a narrow scope; with a single private repository and a single
-administrator only the narrow-scope concern remains, and path scoping addresses it.
+The one property a separate manifests repository still buys — a narrow reconcile scope
+for the controller — is provided just as well by path scoping, so it does not justify the
+overhead of a second repository for a single-administrator setup.
 
 ### Consequences
 
