@@ -1,0 +1,100 @@
+name: Offsite backup (restic → GCS)
+
+# Pulls the nightly Proxmox vzdump archives off the pve host (read-only, over an
+# rrsync-pinned SSH key) and pushes an encrypted, deduplicated copy to the
+# multi-region EU Coldline bucket via restic. Runs on the self-hosted mgmt
+# runner and authenticates to GCP keylessly through Workload Identity Federation
+# — no long-lived key on the host. Secrets (restic password, pull SSH key) come
+# from GCP Secret Manager at runtime. See ADR 0005 / #252.
+
+on:
+  schedule:
+    - cron: "30 2 * * *" # after the 02:00 local vzdump job (UTC; ~03:30–04:30 local)
+  workflow_dispatch: {}
+
+concurrency:
+  group: backup-offsite
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # required for Workload Identity Federation
+
+env:
+  PVE_HOST: 192.168.99.100
+  PVE_DUMP_USER: backup-ro
+  GCP_PROJECT: malachowski
+  RESTIC_VERSION: "0.17.3"
+  # SHA256 of restic_${RESTIC_VERSION}_linux_arm64.bz2 (restic release SHA256SUMS).
+  RESTIC_SHA256: "db27b803534d301cef30577468cf61cb2e242165b8cd6d8cd6efd7001be2e557"
+  RESTIC_REPOSITORY: "gs:backup.infra.malachowski.me:/pve"
+
+jobs:
+  offsite:
+    runs-on: [self-hosted, Linux, ARM64]
+    steps:
+      - name: Authenticate to GCP (keyless, WIF)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: malachowski
+          workload_identity_provider: projects/671067631752/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: restic-offsite-backup@malachowski.iam.gserviceaccount.com
+
+      - name: Fetch secrets from Secret Manager
+        id: secrets
+        uses: google-github-actions/get-secretmanager-secrets@bc9c54b29fdffb8a47776820a7d26e77b379d262 # v3.0.0
+        with:
+          secrets: |-
+            restic_password:${{ env.GCP_PROJECT }}/restic-offsite-password
+            ssh_key:${{ env.GCP_PROJECT }}/pve-backup-ssh-key
+
+      - name: Prepare restic and workspace
+        env:
+          # Pass the key via env, not inline ${{ }}, so its contents can never be
+          # expanded into the shell script text (injection-safe).
+          SSH_KEY: ${{ steps.secrets.outputs.ssh_key }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/stage"
+          # RUNNER_TEMP is recreated per job, so fetch restic each run (there is no
+          # binary to cache across runs here).
+          url="https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_arm64.bz2"
+          curl -fsSL "$url" -o "$RUNNER_TEMP/restic.bz2"
+          echo "${RESTIC_SHA256}  $RUNNER_TEMP/restic.bz2" | sha256sum -c -
+          bunzip2 -c "$RUNNER_TEMP/restic.bz2" > "$RUNNER_TEMP/bin/restic"
+          chmod +x "$RUNNER_TEMP/bin/restic"
+          "$RUNNER_TEMP/bin/restic" version
+
+          # Pinned pull key (read-only, rrsync-confined on the pve side).
+          umask 077
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/pull_key"
+          chmod 600 "$RUNNER_TEMP/pull_key"
+
+      - name: Pull vzdump archives from pve (read-only)
+        run: |
+          set -euo pipefail
+          rsync -a --info=stats1 \
+            -e "ssh -i '$RUNNER_TEMP/pull_key' -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=15" \
+            "${PVE_DUMP_USER}@${PVE_HOST}:./" "$RUNNER_TEMP/stage/"
+          ls -lh "$RUNNER_TEMP/stage"
+
+      - name: Push to GCS with restic
+        env:
+          RESTIC_PASSWORD: ${{ steps.secrets.outputs.restic_password }}
+          GOOGLE_PROJECT_ID: malachowski
+        run: |
+          set -euo pipefail
+          restic="$RUNNER_TEMP/bin/restic"
+          # Initialise the repo on first run only.
+          "$restic" cat config >/dev/null 2>&1 || "$restic" init
+          "$restic" backup --host pve --tag vzdump "$RUNNER_TEMP/stage"
+          # Prune every run so space is always reclaimed. A fixed-weekday prune
+          # could be skipped for weeks if the runner is offline that day, leaving
+          # the repo to grow; the Coldline early-delete cost at this churn is
+          # negligible next to that risk.
+          "$restic" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+          "$restic" snapshots --compact
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/stage" "$RUNNER_TEMP/pull_key"
