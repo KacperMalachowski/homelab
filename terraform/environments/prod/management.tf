@@ -15,6 +15,14 @@ resource "google_project_iam_member" "ops_viewer" {
   member  = "serviceAccount:${google_service_account.homelab_ops.email}"
 }
 
+# Read-only view of IAM policies so `tofu plan` can refresh iam_member resources
+# (basic viewer lacks *.getIamPolicy). Still cannot modify IAM.
+resource "google_project_iam_member" "ops_security_reviewer" {
+  project = var.gcp_project
+  role    = "roles/iam.securityReviewer"
+  member  = "serviceAccount:${google_service_account.homelab_ops.email}"
+}
+
 resource "google_storage_bucket_iam_member" "ops_state_object_admin" {
   bucket = "state.infra.malachowski.me"
   role   = "roles/storage.objectAdmin"
