@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal homelab infrastructure-as-code. The working tree was deliberately reset (`A new start`) and is being rebuilt; most structure below currently lives in git history and is being reintroduced. Intended stack:
 
-- **OpenTofu** (`tofu`, not the `terraform` CLI) — state in a GCS backend (`malachowski-state`, prefix `prod`). `required_version >= 1.3.0`.
+- **OpenTofu** (`tofu`, not the `terraform` CLI) — state in a GCS backend (`state.infra.malachowski.me`, prefix `prod`). `required_version >= 1.3.0`.
 - **Packer** — builds openSUSE MicroOS + k3s snapshots on Hetzner Cloud.
 - **Ansible** — node OS baseline and RouterOS (`community.routeros`).
 - **Flux** — GitOps in-cluster delivery (chosen over ArgoCD, see ADR 0003).
