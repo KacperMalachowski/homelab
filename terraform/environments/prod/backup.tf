@@ -1,4 +1,4 @@
-# Offsite backup infrastructure (#252, ADR 0004): a Coldline bucket holding the
+# Offsite backup infrastructure (#252, ADR 0005): a Coldline bucket holding the
 # restic repository, plus keyless GitHub Actions -> GCP Workload Identity
 # Federation so the self-hosted runner can write to it without a long-lived
 # service-account key.

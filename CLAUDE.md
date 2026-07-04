@@ -9,7 +9,7 @@ Personal homelab infrastructure-as-code. The working tree was deliberately reset
 - **OpenTofu** (`tofu`, not the `terraform` CLI) — state in a GCS backend (`state.infra.malachowski.me`, prefix `prod`). `required_version >= 1.3.0`.
 - **Packer** — builds openSUSE MicroOS + k3s snapshots on Hetzner Cloud.
 - **Ansible** — node OS baseline and RouterOS (`community.routeros`).
-- **Flux** — GitOps in-cluster delivery (chosen over ArgoCD, see ADR 0003).
+- **Flux** — GitOps in-cluster delivery (chosen over ArgoCD, see ADR 0004).
 - **k3s** on Hetzner Cloud; **Cloudflare** for DNS/edge. Secrets live in **GCP Secret Manager**.
 
 Intended top-level layout (referenced by `.github/labeler.yml`): `terraform/environments/prod/`, `terraform/modules/`, `packer/`, `ansible/`, `adrs/decisions/`.
