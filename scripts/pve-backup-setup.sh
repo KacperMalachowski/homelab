@@ -21,7 +21,7 @@ set -euo pipefail
 THIN_POOL="hdd_sata/hdd_sata"      # <vg>/<thinpool> of the idle HDD
 LV_NAME="backup"
 LV_SIZE="600G"
-LV_DEV="/dev/hdd_sata/backup"
+LV_DEV="/dev/${THIN_POOL%/*}/$LV_NAME"   # derived from the VG + LV_NAME above
 MOUNT="/mnt/pve/backup-local"
 STORAGE="backup-local"
 BACKUP_VMIDS="100,101"             # HAOS + Pi-hole
