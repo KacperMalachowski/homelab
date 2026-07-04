@@ -10,7 +10,7 @@
 resource "google_storage_bucket" "backups" {
   name     = var.backup_bucket_name
   project  = var.gcp_project
-  location = var.gcp_region
+  location = var.backup_bucket_location
 
   storage_class               = "COLDLINE"
   uniform_bucket_level_access = true
