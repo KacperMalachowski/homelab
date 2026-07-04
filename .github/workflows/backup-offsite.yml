@@ -5,7 +5,7 @@ name: Offsite backup (restic → GCS)
 # multi-region EU Coldline bucket via restic. Runs on the self-hosted mgmt
 # runner and authenticates to GCP keylessly through Workload Identity Federation
 # — no long-lived key on the host. Secrets (restic password, pull SSH key) come
-# from GCP Secret Manager at runtime. See ADR 0004 / #252.
+# from GCP Secret Manager at runtime. See ADR 0005 / #252.
 
 on:
   schedule:
