@@ -23,6 +23,22 @@ resource "google_project_iam_member" "ops_security_reviewer" {
   member  = "serviceAccount:${google_service_account.homelab_ops.email}"
 }
 
+# securityReviewer doesn't cover GCS bucket IAM; grant just the one read
+# permission `tofu plan` needs to refresh google_storage_bucket_iam_member.
+resource "google_project_iam_custom_role" "ops_bucket_iam_read" {
+  project     = var.gcp_project
+  role_id     = "homelabOpsBucketIamRead"
+  title       = "Homelab ops - bucket IAM read"
+  description = "Read bucket IAM policy so the plan-only workstation can refresh bucket_iam_member."
+  permissions = ["storage.buckets.getIamPolicy"]
+}
+
+resource "google_project_iam_member" "ops_bucket_iam_read" {
+  project = var.gcp_project
+  role    = google_project_iam_custom_role.ops_bucket_iam_read.id
+  member  = "serviceAccount:${google_service_account.homelab_ops.email}"
+}
+
 resource "google_storage_bucket_iam_member" "ops_state_object_admin" {
   bucket = "state.infra.malachowski.me"
   role   = "roles/storage.objectAdmin"
