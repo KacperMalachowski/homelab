@@ -47,19 +47,23 @@ jobs:
             ssh_key:${{ env.GCP_PROJECT }}/pve-backup-ssh-key
 
       - name: Prepare restic and workspace
+        env:
+          # Pass the key via env, not inline ${{ }}, so its contents can never be
+          # expanded into the shell script text (injection-safe).
+          SSH_KEY: ${{ steps.secrets.outputs.ssh_key }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/stage"
-          if ! command -v "$RUNNER_TEMP/bin/restic" >/dev/null 2>&1; then
-            url="https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_arm64.bz2"
-            curl -fsSL "$url" | bunzip2 > "$RUNNER_TEMP/bin/restic"
-            chmod +x "$RUNNER_TEMP/bin/restic"
-          fi
+          # RUNNER_TEMP is recreated per job, so fetch restic each run (there is no
+          # binary to cache across runs here).
+          url="https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_arm64.bz2"
+          curl -fsSL "$url" | bunzip2 > "$RUNNER_TEMP/bin/restic"
+          chmod +x "$RUNNER_TEMP/bin/restic"
           "$RUNNER_TEMP/bin/restic" version
 
           # Pinned pull key (read-only, rrsync-confined on the pve side).
           umask 077
-          printf '%s\n' "${{ steps.secrets.outputs.ssh_key }}" > "$RUNNER_TEMP/pull_key"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/pull_key"
           chmod 600 "$RUNNER_TEMP/pull_key"
 
       - name: Pull vzdump archives from pve (read-only)
@@ -80,9 +84,11 @@ jobs:
           # Initialise the repo on first run only.
           "$restic" cat config >/dev/null 2>&1 || "$restic" init
           "$restic" backup --host pve --tag vzdump "$RUNNER_TEMP/stage"
-          # Retention: forget nightly; prune weekly (Coldline min-storage duration).
-          "$restic" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6
-          if [ "$(date +%u)" = "7" ]; then "$restic" prune; fi
+          # Prune every run so space is always reclaimed. A fixed-weekday prune
+          # could be skipped for weeks if the runner is offline that day, leaving
+          # the repo to grow; the Coldline early-delete cost at this churn is
+          # negligible next to that risk.
+          "$restic" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
           "$restic" snapshots --compact
 
       - name: Cleanup
