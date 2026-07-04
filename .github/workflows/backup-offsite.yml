@@ -25,6 +25,8 @@ env:
   PVE_DUMP_USER: backup-ro
   GCP_PROJECT: malachowski
   RESTIC_VERSION: "0.17.3"
+  # SHA256 of restic_${RESTIC_VERSION}_linux_arm64.bz2 (restic release SHA256SUMS).
+  RESTIC_SHA256: "db27b803534d301cef30577468cf61cb2e242165b8cd6d8cd6efd7001be2e557"
   RESTIC_REPOSITORY: "gs:backup.infra.malachowski.me:/pve"
 
 jobs:
@@ -57,7 +59,9 @@ jobs:
           # RUNNER_TEMP is recreated per job, so fetch restic each run (there is no
           # binary to cache across runs here).
           url="https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_arm64.bz2"
-          curl -fsSL "$url" | bunzip2 > "$RUNNER_TEMP/bin/restic"
+          curl -fsSL "$url" -o "$RUNNER_TEMP/restic.bz2"
+          echo "${RESTIC_SHA256}  $RUNNER_TEMP/restic.bz2" | sha256sum -c -
+          bunzip2 -c "$RUNNER_TEMP/restic.bz2" > "$RUNNER_TEMP/bin/restic"
           chmod +x "$RUNNER_TEMP/bin/restic"
           "$RUNNER_TEMP/bin/restic" version
 
