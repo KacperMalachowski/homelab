@@ -5,7 +5,7 @@ can't live in OpenTofu — raw host OS work on the Proxmox node.
 
 ## `pve-backup-setup.sh`
 
-Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0004):
+Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0005):
 the local vzdump backup volume + PVE storage, the nightly vzdump job, and the
 PVE-privilege-free `backup-ro` account whose SSH key is `rrsync`-pinned to
 read-only access of the dump directory (its private key lives in GCP Secret

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0004).
+# Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0005).
 # Idempotent: safe to re-run. Run as root ON the Proxmox host (pve):
 #
 #     scp scripts/pve-backup-setup.sh root@pve:/tmp/ && ssh root@pve bash /tmp/pve-backup-setup.sh
