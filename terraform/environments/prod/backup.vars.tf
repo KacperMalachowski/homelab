@@ -11,15 +11,15 @@ variable "gcp_region" {
 }
 
 variable "backup_bucket_location" {
-  description = "Location of the offsite backup bucket. Multi-region EU for disaster-recovery geo-redundancy across separated EU locations (a single region shares a disaster domain with the on-prem host)."
+  description = "Location of the offsite backup bucket. Single EU region (europe-west1, geographically separated from the Poland on-prem host) rather than EU multi-region: the multi-region tier bills cross-region replication transfer on every written byte — the largest line on the backup bill — for geo-redundancy an offsite DR copy does not need on top of single-region's 11-nines durability. See docs/runbooks/offsite-bucket-single-region-migration.md."
   type        = string
-  default     = "EU"
+  default     = "europe-west1"
 }
 
 variable "backup_bucket_name" {
-  description = "Name of the Coldline bucket holding the offsite restic repository."
+  description = "Name of the Coldline bucket holding the offsite restic repository. Region-neutral name so a future relocation never forces another rename."
   type        = string
-  default     = "backup.infra.malachowski.me"
+  default     = "offsite.infra.malachowski.me"
 }
 
 variable "github_repository" {

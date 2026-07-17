@@ -3,7 +3,7 @@ name: Offsite backup (restic → GCS)
 # Mounts the nightly Proxmox vzdump dir off the pve host read-only over sshfs
 # (SFTP-pinned key) and streams it straight into restic — no local staging, so
 # the runner's small disk never holds a copy of the archives. restic pushes an
-# encrypted, deduplicated copy to the multi-region EU Coldline bucket. Runs on
+# encrypted, deduplicated copy to the single-region EU Coldline bucket. Runs on
 # the self-hosted mgmt runner and authenticates to GCP keylessly through Workload
 # Identity Federation — no long-lived key on the host. Secrets (restic password,
 # pull SSH key) come from GCP Secret Manager at runtime. See ADR 0004 / #252.
@@ -32,7 +32,7 @@ env:
   RESTIC_VERSION: "0.17.3"
   # SHA256 of restic_${RESTIC_VERSION}_linux_arm64.bz2 (restic release SHA256SUMS).
   RESTIC_SHA256: "db27b803534d301cef30577468cf61cb2e242165b8cd6d8cd6efd7001be2e557"
-  RESTIC_REPOSITORY: "gs:backup.infra.malachowski.me:/pve"
+  RESTIC_REPOSITORY: "gs:offsite.infra.malachowski.me:/pve"
 
 jobs:
   offsite:

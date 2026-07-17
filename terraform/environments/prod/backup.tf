@@ -1,7 +1,13 @@
-# Offsite backup infrastructure (#252, ADR 0005): a Coldline bucket holding the
-# restic repository, plus keyless GitHub Actions -> GCP Workload Identity
-# Federation so the self-hosted runner can write to it without a long-lived
-# service-account key.
+# Offsite backup infrastructure (#252, ADR 0004): a single-region Coldline
+# bucket holding the restic repository, plus keyless GitHub Actions -> GCP
+# Workload Identity Federation so the self-hosted runner can write to it without
+# a long-lived service-account key.
+#
+# Location is a single EU region, not EU multi-region: the multi-region tier
+# bills cross-region replication transfer per written byte (the top line on the
+# backup bill), which an offsite DR copy does not need on top of single-region's
+# 11-nines durability. Migrating an existing bucket is a copy-and-cutover, not an
+# in-place apply -> docs/runbooks/offsite-bucket-single-region-migration.md.
 #
 # Retention is managed by restic (forget/prune), NOT by an object-lifecycle
 # delete rule: restic dedups, so pack objects are shared across snapshots and
