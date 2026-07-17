@@ -130,7 +130,13 @@ jobs:
           # Prune every run so space is always reclaimed. Retention is tuned for
           # the weekly cadence (a daily tier is meaningless at one snapshot/week):
           # keep the last 6 weeks plus 6 monthlies of restore points.
-          "$restic" forget --keep-weekly 6 --keep-monthly 6 --prune
+          #
+          # --group-by host,tags is load-bearing: the backup targets are the
+          # date-stamped archive paths, so each week's snapshot has unique paths.
+          # forget's default (group-by host,paths) would isolate every run into
+          # its own group and never prune — retention would grow without bound.
+          "$restic" forget --host pve --tag vzdump --group-by host,tags \
+            --keep-weekly 6 --keep-monthly 6 --prune
           "$restic" snapshots --compact
 
       - name: Unmount and cleanup
