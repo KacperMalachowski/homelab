@@ -102,9 +102,31 @@ jobs:
         run: |
           set -euo pipefail
           restic="$RUNNER_TEMP/bin/restic"
+          mnt="$RUNNER_TEMP/mnt"
           # Initialise the repo on first run only.
           "$restic" cat config >/dev/null 2>&1 || "$restic" init
-          "$restic" backup --host pve --tag vzdump "$RUNNER_TEMP/mnt"
+
+          # Offsite keeps a single weekly restore point, so capture only the
+          # newest image archive per guest (.vma.zst / .tar.zst) — never the
+          # .log/.notes sidecars or any in-progress temp files. The 7 nightly
+          # points live on the local copy for fine-grained restore; re-uploading
+          # all of them weekly would read ~7x more over sshfs and, since
+          # zstd images barely dedup across nights, write ~7x more to GCS.
+          shopt -s nullglob
+          declare -A newest
+          for f in "$mnt"/vzdump-*.vma.zst "$mnt"/vzdump-*.tar.zst; do
+            key=$(basename "$f"); key=${key%-20*}   # vzdump-<type>-<vmid>
+            if [ -z "${newest[$key]:-}" ] || [ "$f" -nt "${newest[$key]}" ]; then
+              newest[$key]="$f"
+            fi
+          done
+          targets=("${newest[@]}")
+          if [ ${#targets[@]} -eq 0 ]; then
+            echo "::error::no vzdump archives found under $mnt"; exit 1
+          fi
+          printf 'backing up: %s\n' "${targets[@]}"
+
+          "$restic" backup --host pve --tag vzdump "${targets[@]}"
           # Prune every run so space is always reclaimed. Retention is tuned for
           # the weekly cadence (a daily tier is meaningless at one snapshot/week):
           # keep the last 6 weeks plus 6 monthlies of restore points.
