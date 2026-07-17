@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0005).
+# Codifies the pve-host side of the tested-offsite-backups work (#252, ADR 0004).
 # Idempotent: safe to re-run. Run as root ON the Proxmox host (pve):
 #
 #     scp scripts/pve-backup-setup.sh root@pve:/tmp/ && ssh root@pve bash /tmp/pve-backup-setup.sh
@@ -8,10 +8,10 @@
 # What it sets up:
 #   1. A dedicated ext4 backup volume on the idle 1TB HDD pool -> PVE `dir` storage.
 #   2. A nightly vzdump job (snapshot mode) with local retention.
-#   3. A PVE-privilege-free OS account `backup-ro` whose SSH key is pinned, via
-#      rrsync, to read-only access of the dump directory — this is what the
-#      offsite GitHub Actions workflow pulls with (its private key lives in GCP
-#      Secret Manager: `pve-backup-ssh-key`).
+#   3. A PVE-privilege-free OS account `backup-ro` whose SSH key is pinned to a
+#      read-only SFTP server — this is what the offsite GitHub Actions workflow
+#      mounts (sshfs, zero local copy) to feed restic (its private key lives in
+#      GCP Secret Manager: `pve-backup-ssh-key`).
 #
 # It intentionally does NOT touch guests or existing storage. The offsite push
 # (restic -> GCS, keyless WIF) lives in .github/workflows/backup-offsite.yml.
@@ -29,6 +29,7 @@ SCHEDULE="02:00"
 PRUNE="keep-daily=7,keep-weekly=4"
 JOB_MARKER="managed-by:pve-backup-setup"
 BACKUP_USER="backup-ro"
+SFTP_SERVER="/usr/lib/openssh/sftp-server"   # Debian/Proxmox path; the offsite pull key is pinned to it
 # Public half of the offsite pull key; private half is in GCP SM pve-backup-ssh-key.
 PULL_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIObT5YPhI8eKuBtxTotu5y2jvWUaznBM5rWCTN03ODTf pve-backup-ro-pull"
 # -----------------------------------------------------------------------------
@@ -89,9 +90,12 @@ id "$BACKUP_USER" >/dev/null 2>&1 || {
   useradd -r -m -d "/home/$BACKUP_USER" -s /bin/bash "$BACKUP_USER"
 }
 install -d -m 700 -o "$BACKUP_USER" -g "$BACKUP_USER" "/home/$BACKUP_USER/.ssh"
-# Pin the key to rrsync, read-only, confined to the dump dir — nothing else.
-printf 'command="/usr/bin/rrsync -ro %s/dump",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding %s\n' \
-  "$MOUNT" "$PULL_PUBKEY" >"/home/$BACKUP_USER/.ssh/authorized_keys"
+# Pin the key to a read-only SFTP server. The offsite workflow mounts the dump
+# dir over sshfs and streams it straight into restic (no local staging), so the
+# runner's disk never holds a copy. `-R` forbids any write from the client; the
+# key already carries no PVE privileges and no interactive shell.
+printf 'command="%s -R",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding %s\n' \
+  "$SFTP_SERVER" "$PULL_PUBKEY" >"/home/$BACKUP_USER/.ssh/authorized_keys"
 chown "$BACKUP_USER:$BACKUP_USER" "/home/$BACKUP_USER/.ssh/authorized_keys"
 chmod 600 "/home/$BACKUP_USER/.ssh/authorized_keys"
 

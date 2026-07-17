@@ -1,15 +1,20 @@
 name: Offsite backup (restic → GCS)
 
-# Pulls the nightly Proxmox vzdump archives off the pve host (read-only, over an
-# rrsync-pinned SSH key) and pushes an encrypted, deduplicated copy to the
-# multi-region EU Coldline bucket via restic. Runs on the self-hosted mgmt
-# runner and authenticates to GCP keylessly through Workload Identity Federation
-# — no long-lived key on the host. Secrets (restic password, pull SSH key) come
-# from GCP Secret Manager at runtime. See ADR 0005 / #252.
+# Mounts the nightly Proxmox vzdump dir off the pve host read-only over sshfs
+# (SFTP-pinned key) and streams it straight into restic — no local staging, so
+# the runner's small disk never holds a copy of the archives. restic pushes an
+# encrypted, deduplicated copy to the multi-region EU Coldline bucket. Runs on
+# the self-hosted mgmt runner and authenticates to GCP keylessly through Workload
+# Identity Federation — no long-lived key on the host. Secrets (restic password,
+# pull SSH key) come from GCP Secret Manager at runtime. See ADR 0004 / #252.
 
 on:
   schedule:
-    - cron: "30 2 * * *" # after the 02:00 local vzdump job (UTC; ~03:30–04:30 local)
+    # Weekly, not nightly: the offsite push's dominant cost is bytes written to a
+    # multi-region bucket (cross-region replication transfer), so cadence drives
+    # spend more than anything else. Local vzdump stays nightly, so on-box
+    # recovery is unaffected; only the offsite DR copy's RPO relaxes to ~1 week.
+    - cron: "30 2 * * 0" # Sunday, after the 02:00 local vzdump (UTC; ~04:30 local)
   workflow_dispatch: {}
 
 concurrency:
@@ -55,7 +60,7 @@ jobs:
           SSH_KEY: ${{ steps.secrets.outputs.ssh_key }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/stage"
+          mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/mnt"
           # RUNNER_TEMP is recreated per job, so fetch restic each run (there is no
           # binary to cache across runs here).
           url="https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_arm64.bz2"
@@ -65,36 +70,81 @@ jobs:
           chmod +x "$RUNNER_TEMP/bin/restic"
           "$RUNNER_TEMP/bin/restic" version
 
-          # Pinned pull key (read-only, rrsync-confined on the pve side).
+          # Pinned pull key (read-only SFTP forced-command on the pve side).
           umask 077
           printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/pull_key"
           chmod 600 "$RUNNER_TEMP/pull_key"
 
-      - name: Pull vzdump archives from pve (read-only)
+      - name: Mount pve dump dir (read-only, sshfs)
         run: |
           set -euo pipefail
-          rsync -a --info=stats1 \
-            -e "ssh -i '$RUNNER_TEMP/pull_key' -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=15" \
-            "${PVE_DUMP_USER}@${PVE_HOST}:./" "$RUNNER_TEMP/stage/"
-          ls -lh "$RUNNER_TEMP/stage"
+          command -v sshfs >/dev/null || {
+            echo "::error::sshfs is not installed on the runner (apt-get install sshfs)"; exit 1;
+          }
+          # Zero-copy: restic reads the archives straight off the mount, so the
+          # runner never stages a local copy (a full pull overran its disk).
+          # -o compression=no: the .vma.zst are already compressed, don't burn
+          # Pi CPU re-compressing the SFTP stream.
+          sshfs "${PVE_DUMP_USER}@${PVE_HOST}:/mnt/pve/backup-local/dump" "$RUNNER_TEMP/mnt" \
+            -o IdentityFile="$RUNNER_TEMP/pull_key" \
+            -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
+            -o ro -o reconnect -o ConnectTimeout=15 -o compression=no
+          ls -lh "$RUNNER_TEMP/mnt"
 
       - name: Push to GCS with restic
         env:
           RESTIC_PASSWORD: ${{ steps.secrets.outputs.restic_password }}
           GOOGLE_PROJECT_ID: malachowski
+          # Keep restic's cache inside RUNNER_TEMP so it stays ephemeral and can
+          # never accumulate on the runner's small disk. It holds only repo
+          # index/metadata (tens of MB), never archive data.
+          RESTIC_CACHE_DIR: ${{ runner.temp }}/restic-cache
         run: |
           set -euo pipefail
           restic="$RUNNER_TEMP/bin/restic"
+          mnt="$RUNNER_TEMP/mnt"
           # Initialise the repo on first run only.
           "$restic" cat config >/dev/null 2>&1 || "$restic" init
-          "$restic" backup --host pve --tag vzdump "$RUNNER_TEMP/stage"
-          # Prune every run so space is always reclaimed. A fixed-weekday prune
-          # could be skipped for weeks if the runner is offline that day, leaving
-          # the repo to grow; the Coldline early-delete cost at this churn is
-          # negligible next to that risk.
-          "$restic" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+
+          # Offsite keeps a single weekly restore point, so capture only the
+          # newest image archive per guest (.vma.zst / .tar.zst) — never the
+          # .log/.notes sidecars or any in-progress temp files. The 7 nightly
+          # points live on the local copy for fine-grained restore; re-uploading
+          # all of them weekly would read ~7x more over sshfs and, since
+          # zstd images barely dedup across nights, write ~7x more to GCS.
+          shopt -s nullglob
+          declare -A newest
+          for f in "$mnt"/vzdump-*.vma.zst "$mnt"/vzdump-*.tar.zst; do
+            key=$(basename "$f"); key=${key%-20*}   # vzdump-<type>-<vmid>
+            if [ -z "${newest[$key]:-}" ] || [ "$f" -nt "${newest[$key]}" ]; then
+              newest[$key]="$f"
+            fi
+          done
+          targets=("${newest[@]}")
+          if [ ${#targets[@]} -eq 0 ]; then
+            echo "::error::no vzdump archives found under $mnt"; exit 1
+          fi
+          printf 'backing up: %s\n' "${targets[@]}"
+
+          "$restic" backup --host pve --tag vzdump "${targets[@]}"
+          # Prune every run so space is always reclaimed. Retention is tuned for
+          # the weekly cadence (a daily tier is meaningless at one snapshot/week):
+          # keep the last 6 weeks plus 6 monthlies of restore points.
+          #
+          # --group-by host,tags is load-bearing: the backup targets are the
+          # date-stamped archive paths, so each week's snapshot has unique paths.
+          # forget's default (group-by host,paths) would isolate every run into
+          # its own group and never prune — retention would grow without bound.
+          "$restic" forget --host pve --tag vzdump --group-by host,tags \
+            --keep-weekly 6 --keep-monthly 6 --prune
           "$restic" snapshots --compact
 
-      - name: Cleanup
+      - name: Unmount and cleanup
         if: always()
-        run: rm -rf "$RUNNER_TEMP/stage" "$RUNNER_TEMP/pull_key"
+        run: |
+          # Guaranteed teardown: plain unmount, then fuse3's binary, then a lazy
+          # unmount if restic was killed holding the mount busy.
+          fusermount -u "$RUNNER_TEMP/mnt" 2>/dev/null \
+            || fusermount3 -u "$RUNNER_TEMP/mnt" 2>/dev/null \
+            || fusermount -uz "$RUNNER_TEMP/mnt" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/pull_key"
